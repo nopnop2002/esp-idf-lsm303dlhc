@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="main.css">
+	<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+	<title>Compass Calibrate</title>
+</head>
+
+<body>
+	<h1 id="header"></h1>
+
+	<div id="myDiv"></div>
+
+	<script>
+		// wait for the page to load
+		//window.addEventListener('DOMContentLoaded', init);
+
+function rand() {
+  return Math.random();
+}
+
+var trace = {
+	x:[], y:[], z:[],
+	mode: 'markers',
+	marker: {
+		size: 4,
+		line: {
+		color: 'rgba(217, 217, 217, 0.14)',
+		width: 0.5},
+		opacity: 0.8},
+	type: 'scatter3d'
+};
+
+var data = [trace];
+var layout = {margin: {
+	l: 0,
+	r: 0,
+	b: 0,
+	t: 0
+  }};
+
+Plotly.newPlot('myDiv', data, layout)
+
+	</script>
+
+	<script type="text/javascript" src="main.js"></script>
+</body>
+</html>
+
