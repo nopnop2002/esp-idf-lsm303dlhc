@@ -10,6 +10,8 @@ It's very intuitive and easy to understand.
 ![a-Pitch-yaw-and-roll-angles-of-an-aircraft-with-body-orientation-O-u-v-original](https://user-images.githubusercontent.com/6020549/226072914-a7f923fc-eb6e-4d19-b2ff-8c9f2749ee6f.jpg)
 
 First, calibrate the compass and find the shift value for each axis.   
+![calibrate-1](https://user-images.githubusercontent.com/6020549/226536404-9c68eaad-ae37-41bc-ac6d-b4a9ada07335.jpg)
+
 Then use the accelerometer and magnetometer to find the Euler angle.   
 ![euler](https://user-images.githubusercontent.com/6020549/226537059-0fb1d339-9d12-4732-91af-1cd7df5ea003.jpg)
 
