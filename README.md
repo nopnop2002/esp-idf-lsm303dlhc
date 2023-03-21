@@ -11,6 +11,7 @@ It's very intuitive and easy to understand.
 
 First, calibrate the compass and find the shift value for each axis.   
 Then use the accelerometer and magnetometer to find the Euler angle.   
+![euler](https://user-images.githubusercontent.com/6020549/226537059-0fb1d339-9d12-4732-91af-1cd7df5ea003.jpg)
 
 I used [this](https://github.com/jrowberg/i2cdevlib/tree/master/Arduino/LSM303DLHC) library.   
 
