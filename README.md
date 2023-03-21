@@ -7,7 +7,6 @@ Usually 6Dof IMU has accelerometer and gyroscope, but this IMU has accelerometer
 Using the data we get from accelerometer and magnetometer we can estimate the Euler angles.
 Euler angles are roll, pitch and yaw.   
 It's very intuitive and easy to understand.   
-However, since BMI160 is a 6DoF IMU, YAW estimation is not possible.   
 ![a-Pitch-yaw-and-roll-angles-of-an-aircraft-with-body-orientation-O-u-v-original](https://user-images.githubusercontent.com/6020549/226072914-a7f923fc-eb6e-4d19-b2ff-8c9f2749ee6f.jpg)
 
 First, calibrate the compass and find the shift value for each axis.   
@@ -64,7 +63,7 @@ or
 http://esp32.local/
 ```
 
-Move the IMU and plot the X,Y,Z values.   
+Move the IMU and plot the X, Y, Z values.   
 X, Y, Z offset values are displayed.   
 
 ![calibrate-1](https://user-images.githubusercontent.com/6020549/226536404-9c68eaad-ae37-41bc-ac6d-b4a9ada07335.jpg)
@@ -86,7 +85,7 @@ idf.py flash
 ```
 
 ### Configuration   
-Set the compass offset to the value obtained during calibration.
+Sets the compass offset obtained by calibration.   
 
 ![config-top](https://user-images.githubusercontent.com/6020549/226536118-abca60ec-3468-4bc0-83bb-2b95baf53bf1.jpg)
 ![config app](https://user-images.githubusercontent.com/6020549/226536122-b641cadf-37b7-44a7-b941-e737b08ef1f1.jpg)
