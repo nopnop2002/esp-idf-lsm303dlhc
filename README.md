@@ -4,12 +4,13 @@ A demo showing the pose of the lsm303dlhc in 3D using esp-idf.
 LSM303DLHC is a 6DoF IMU.   
 Usually 6Dof IMU has accelerometer and gyroscope, but this IMU has accelerometer and magnetometer.   
 
-Using the data we get from accelerometer and magnetometer we can estimate the Euler angles.
+Using the data we get from accelerometer and magnetometer we can estimate the Euler angles.   
 Euler angles are roll, pitch and yaw.   
 It's very intuitive and easy to understand.   
 ![a-Pitch-yaw-and-roll-angles-of-an-aircraft-with-body-orientation-O-u-v-original](https://user-images.githubusercontent.com/6020549/226072914-a7f923fc-eb6e-4d19-b2ff-8c9f2749ee6f.jpg)
 
 First, calibrate the compass and find the shift value for each axis.   
+As you can see, the X and Y axes are quite off-center.   
 ![calibrate-11](https://user-images.githubusercontent.com/6020549/226539283-9e53225e-7e95-4a0a-891b-8f487ffbd782.jpg)
 
 Then use the accelerometer and magnetometer to find the Euler angle.   
