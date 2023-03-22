@@ -49,11 +49,9 @@ idf.py flash
 ```
 
 ### Configuration   
-Set the compass offset to 0.
-
+To find the offset value, set the compass offset to 0.   
 ![config-top](https://user-images.githubusercontent.com/6020549/226536118-abca60ec-3468-4bc0-83bb-2b95baf53bf1.jpg)
-![config app](https://user-images.githubusercontent.com/6020549/226536122-b641cadf-37b7-44a7-b941-e737b08ef1f1.jpg)
-
+![config app](https://user-images.githubusercontent.com/6020549/227060584-98e0cac4-1adf-404b-9dbc-0309b42a8aac.jpg)
 
 ### Execute calibration   
 ESP32 acts as a web server.   
@@ -93,7 +91,7 @@ idf.py flash
 Sets the compass offset obtained by calibration.   
 
 ![config-top](https://user-images.githubusercontent.com/6020549/226536118-abca60ec-3468-4bc0-83bb-2b95baf53bf1.jpg)
-![config app](https://user-images.githubusercontent.com/6020549/226536122-b641cadf-37b7-44a7-b941-e737b08ef1f1.jpg)
+![config app](https://user-images.githubusercontent.com/6020549/227060584-98e0cac4-1adf-404b-9dbc-0309b42a8aac.jpg)
 
 ### View Euler angles with built-in web server   
 ESP32 acts as a web server.   
