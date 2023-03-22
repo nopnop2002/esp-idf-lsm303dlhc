@@ -46,6 +46,9 @@ void getOrientation(float *roll, float *pitch, float *heading) {
 	accelMag.getMag(&mx, &my, &mz);
 	ESP_LOGD(TAG, "acc=0x%x 0x%x 0x%x", ax, ay, az);
 	ESP_LOGD(TAG, "mag=%d %d %d", mx, my, mz);
+	mx = mx + CONFIG_MAGX;
+	my = my + CONFIG_MAGY;
+	mz = mz + CONFIG_MAGZ;
 
 	// Calculation by scale
 	float _ax = (float)(ax>>_lsm303Acc_SHIFT) * _lsm303Acc_LSB * SENSORS_GRAVITY_STANDARD;
@@ -161,9 +164,9 @@ void lsm303(void *pvParameters){
 		accelMag.getMag(&mx, &my, &mz);
 		ESP_LOGI(TAG, "acc=0x%x 0x%x 0x%x", ax, ay, az);
 		ESP_LOGI(TAG, "mag=%d %d %d", mx, my, mz);
-        mx = mx + CONFIG_MAGX;
-        my = my + CONFIG_MAGY;
-        mz = mz + CONFIG_MAGZ;
+		mx = mx + CONFIG_MAGX;
+		my = my + CONFIG_MAGY;
+		mz = mz + CONFIG_MAGZ;
 
 		float _ax = (float)(ax>>_lsm303Acc_SHIFT) * _lsm303Acc_LSB * SENSORS_GRAVITY_STANDARD;
 		float _ay = (float)(ay>>_lsm303Acc_SHIFT) * _lsm303Acc_LSB * SENSORS_GRAVITY_STANDARD;
