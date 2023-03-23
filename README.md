@@ -72,7 +72,7 @@ X, Y, Z offset are displayed.
 ![calibrate-2](https://user-images.githubusercontent.com/6020549/226536407-02a3bf80-d1a4-4558-bb5a-e725ecd94ae2.jpg)
 
 ### Execute calibration again   
-Set the calibration value and run again, the position of the circle will change.   
+If you set the offset you got from the calibration and run it again, the circle position will change.   
 
 ![calibrate-3](https://user-images.githubusercontent.com/6020549/226536920-109b0265-ac45-420f-91d7-ebdc4885e71b.jpg)
 ![calibrate-4](https://user-images.githubusercontent.com/6020549/226536925-a7814fca-da0f-4ac5-a91c-43b2a8a873f1.jpg)
