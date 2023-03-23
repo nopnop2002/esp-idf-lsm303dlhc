@@ -66,7 +66,7 @@ http://esp32.local/
 ```
 
 Move the IMU and plot the X, Y, Z values.   
-X, Y, Z offset values are displayed.   
+X, Y, Z offset are displayed.   
 
 ![calibrate-1](https://user-images.githubusercontent.com/6020549/226536404-9c68eaad-ae37-41bc-ac6d-b4a9ada07335.jpg)
 ![calibrate-2](https://user-images.githubusercontent.com/6020549/226536407-02a3bf80-d1a4-4558-bb5a-e725ecd94ae2.jpg)
