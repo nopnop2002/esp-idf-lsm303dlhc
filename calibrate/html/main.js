@@ -14,6 +14,51 @@ var zmin = 9999;
 var zcenter = 0;
 var zshift = 0;
 
+function CreateTrace() {
+	var trace1 = {
+	x:[], y:[],
+	mode: 'markers',
+	marker: {
+		size: 4,
+		color: 'rgb(255, 0, 0)',
+		line: {
+		color: 'rgb(60, 60, 60)',
+		width: 0.5},
+		opacity: 0.8},
+	type: 'scatter'
+	};
+
+	var trace2 = {
+	x:[], y:[],
+	mode: 'markers',
+	marker: {
+		size: 4,
+		color: 'rgb(0, 0, 255)',
+		line: {
+		color: 'rgb(60, 60, 60)',
+		width: 0.5},
+		opacity: 0.8},
+	type: 'scatter'
+	};
+
+	var data1 = [trace1];
+	var data2 = [trace2];
+	var layout1 = { 
+		title:'X-Axis / Y-Axis',
+		plot_bgcolor: 'rgb(66, 203, 245)',
+		width: 450,
+	};
+	var layout2 = { 
+		title:'X-Axis / Z-Axis',
+		plot_bgcolor: 'rgb(252, 244, 3)',
+		width: 450,
+	};
+
+	Plotly.newPlot('myDiv1', data1, layout1)
+	Plotly.newPlot('myDiv2', data2, layout2)
+}
+
+
 function ClearValuePush() {
 	console.log('ClearChartPush');
 	xmax = -9999;
@@ -28,6 +73,10 @@ function ClearValuePush() {
 	zmin = 9999;
 	zcenter = 0;
 	zshift = 0;
+
+	Plotly.deleteTraces('myDiv1', 0);
+	Plotly.deleteTraces('myDiv2', 0);
+	CreateTrace();
 }
 
 function sendText(name) {
@@ -49,6 +98,8 @@ websocket.onopen = function(evt) {
 	console.log('json_data=' + json_data);
 	websocket.send(json_data);
 	//document.getElementById("datetime").innerHTML = "WebSocket is connected!";
+
+	CreateTrace();
 }
 
 websocket.onmessage = function(evt) {
@@ -75,12 +126,12 @@ websocket.onmessage = function(evt) {
 			if (zval > 1000 || zval < -1000) return;
 
 			Plotly.extendTraces('myDiv1', {
-			    x: [[xval]],
-			    y: [[yval]]
+				x: [[xval]],
+				y: [[yval]]
 			}, [0])
 			Plotly.extendTraces('myDiv2', {
-			    x: [[xval]],
-			    y: [[zval]]
+				x: [[xval]],
+				y: [[zval]]
 			}, [0])
 
 			if (xval < xmin) xmin = xval;

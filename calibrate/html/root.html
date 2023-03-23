@@ -50,57 +50,6 @@
 		<span id = "zshift_val">0000</span>
 	</div>
 
-
-
-	<script>
-	// wait for the page to load
-	//window.addEventListener('DOMContentLoaded', init);
-
-	var trace1 = {
-	x:[], y:[],
-	mode: 'markers',
-	marker: {
-		size: 4,
-		color: 'rgb(255, 0, 0)',
-		line: {
-		color: 'rgb(60, 60, 60)',
-		width: 0.5},
-		opacity: 0.8},
-	type: 'scatter'
-	};
-
-	var trace2 = {
-	x:[], y:[],
-	mode: 'markers',
-	marker: {
-		size: 4,
-		color: 'rgb(0, 0, 255)',
-		line: {
-		color: 'rgb(60, 60, 60)',
-		width: 0.5},
-		opacity: 0.8},
-	type: 'scatter'
-	};
-
-
-	var data1 = [trace1];
-	var data2 = [trace2];
-	var layout1 = { 
-		title:'X-Axis / Y-Axis',
-		plot_bgcolor: 'rgb(66, 203, 245)',
-		width: 450,
-	};
-	var layout2 = { 
-		title:'X-Axis / Z-Axis',
-		plot_bgcolor: 'rgb(252, 244, 3)',
-		width: 450,
-	};
-
-	Plotly.newPlot('myDiv1', data1, layout1)
-	Plotly.newPlot('myDiv2', data2, layout2)
-
-	</script>
-
 	<script type="text/javascript" src="main.js"></script>
 </body>
 </html>
