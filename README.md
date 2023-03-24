@@ -68,15 +68,14 @@ http://esp32.local/
 As you move the IMU it plots the X, Y and Z values.   
 X, Y, Z offset are displayed.   
 
-![calibrate-1](https://user-images.githubusercontent.com/6020549/226536404-9c68eaad-ae37-41bc-ac6d-b4a9ada07335.jpg)
-![calibrate-2](https://user-images.githubusercontent.com/6020549/226536407-02a3bf80-d1a4-4558-bb5a-e725ecd94ae2.jpg)
+![calibrate-1](https://user-images.githubusercontent.com/6020549/227657039-2b7e7632-a642-4836-b448-dfce263aa65f.jpg)
+![calibrate-2](https://user-images.githubusercontent.com/6020549/227657042-fad1d5da-e199-4aa3-b923-c09037218c35.jpg)
 
 ### Execute calibration again   
 If you set the offset you got from the calibration and run it again, the circle position will change.   
 
-![calibrate-3](https://user-images.githubusercontent.com/6020549/226536920-109b0265-ac45-420f-91d7-ebdc4885e71b.jpg)
-![calibrate-4](https://user-images.githubusercontent.com/6020549/226536925-a7814fca-da0f-4ac5-a91c-43b2a8a873f1.jpg)
-
+![calibrate-11](https://user-images.githubusercontent.com/6020549/227657110-4dcddf31-bb6e-4524-b7d4-8272a443fb41.jpg)
+![calibrate-12](https://user-images.githubusercontent.com/6020549/227657112-e0b9d405-0a5e-4437-9255-5a2ca7bd9ed5.jpg)
 
 # Get Euler angles from IMU
 ```

@@ -4,15 +4,15 @@ var websocket = new WebSocket('ws://'+location.hostname+'/');
 var xmax = -9999;
 var xmin = 9999;
 var xcenter = 0;
-var xshift = 0;
+var xoffset = 0;
 var ymax = -9999;
 var ymin = 9999;
 var ycenter = 0;
-var yshift = 0;
+var yoffset = 0;
 var zmax = -9999;
 var zmin = 9999;
 var zcenter = 0;
-var zshift = 0;
+var zoffset = 0;
 
 function CreateTrace() {
 	var trace1 = {
@@ -64,15 +64,15 @@ function ClearValuePush() {
 	xmax = -9999;
 	xmin = 9999;
 	xcenter = 0;
-	xshift = 0;
+	xoffset = 0;
 	ymax = -9999;
 	ymin = 9999;
 	ycenter = 0;
-	yshift = 0;
+	yoffset = 0;
 	zmax = -9999;
 	zmin = 9999;
 	zcenter = 0;
-	zshift = 0;
+	zoffset = 0;
 
 	Plotly.deleteTraces('myDiv1', 0);
 	Plotly.deleteTraces('myDiv2', 0);
@@ -140,12 +140,12 @@ websocket.onmessage = function(evt) {
 			//console.log("xmax=" + xmax);
 			xcenter = (xmax - xmin) / 2.0;
 			//console.log("xcenter=" + xcenter);
-			xshift = xcenter - xmax;
-			//console.log("xshift=" + xshift);
+			xoffset = xcenter - xmax;
+			//console.log("xoffset=" + xoffset);
 			document.getElementById('xmin_val').innerText = xmin.toString();
 			document.getElementById('xmax_val').innerText = xmax.toString();
 			document.getElementById('xcenter_val').innerText = xcenter.toString();
-			document.getElementById('xshift_val').innerText = xshift.toString();
+			document.getElementById('xoffset_val').innerText = xoffset.toString();
 
 			if (yval < ymin) ymin = yval;
 			if (yval > ymax) ymax = yval;
@@ -153,12 +153,12 @@ websocket.onmessage = function(evt) {
 			//console.log("ymax=" + ymax);
 			ycenter = (ymax - ymin) / 2.0;
 			//console.log("ycenter=" + ycenter);
-			yshift = ycenter - ymax;
-			//console.log("yshift=" + yshift);
+			yoffset = ycenter - ymax;
+			//console.log("yoffset=" + yoffset);
 			document.getElementById('ymin_val').innerText = ymin.toString();
 			document.getElementById('ymax_val').innerText = ymax.toString();
 			document.getElementById('ycenter_val').innerText = ycenter.toString();
-			document.getElementById('yshift_val').innerText = yshift.toString();
+			document.getElementById('yoffset_val').innerText = yoffset.toString();
 
 			if (zval < zmin) zmin = zval;
 			if (zval > zmax) zmax = zval;
@@ -166,12 +166,12 @@ websocket.onmessage = function(evt) {
 			//console.log("zmax=" + zmax);
 			zcenter = (zmax - zmin) / 2.0;
 			//console.log("zcenter=" + zcenter);
-			zshift = zcenter - zmax;
-			//console.log("zshift=" + zshift);
+			zoffset = zcenter - zmax;
+			//console.log("zoffset=" + zoffset);
 			document.getElementById('zmin_val').innerText = zmin.toString();
 			document.getElementById('zmax_val').innerText = zmax.toString();
 			document.getElementById('zcenter_val').innerText = zcenter.toString();
-			document.getElementById('zshift_val').innerText = zshift.toString();
+			document.getElementById('zoffset_val').innerText = zoffset.toString();
 
 		default:
 			break;
