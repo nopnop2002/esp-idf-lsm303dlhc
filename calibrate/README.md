@@ -1,4 +1,4 @@
-# MPU6050_DMP6
+# calibrate
 Get Euler angles from MPU and display them in 3D.   
 
 
