@@ -104,7 +104,7 @@ or
 http://esp32.local/
 ```
 
-![euler](https://user-images.githubusercontent.com/6020549/226537059-0fb1d339-9d12-4732-91af-1cd7df5ea003.jpg)
+![lsm303dlhc-euler](https://user-images.githubusercontent.com/6020549/232389292-acb291b7-b92d-44e7-83ab-ca3e8048960c.JPG)
 
 
 WEB pages are stored in the html folder.   
