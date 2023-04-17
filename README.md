@@ -14,7 +14,7 @@ As you can see, the X, Y and Z axes are quite off-center.
 ![calibrate-0](https://user-images.githubusercontent.com/6020549/227759768-63737d65-e080-465e-b7dc-e5eb4dc230e7.jpg)
 
 Then use the accelerometer and magnetometer to find the Euler angle.   
-![euler](https://user-images.githubusercontent.com/6020549/226537059-0fb1d339-9d12-4732-91af-1cd7df5ea003.jpg)
+![lsm303dlhc-euler](https://user-images.githubusercontent.com/6020549/232389292-acb291b7-b92d-44e7-83ab-ca3e8048960c.JPG)
 
 I used [this](https://github.com/jrowberg/i2cdevlib/tree/master/Arduino/LSM303DLHC) library.   
 
