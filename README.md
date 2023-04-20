@@ -1,7 +1,6 @@
 # esp-idf-lsm303dlhc
-A demo showing the pose of the lsm303dlhc in 3D using esp-idf. 
+A demo showing the pose of the lsm303dlhc 6DoF IMU sensor in 3D using esp-idf. 
 
-LSM303DLHC is a 6DoF IMU.   
 Usually 6Dof IMU has accelerometer and gyroscope, but this IMU has accelerometer and magnetometer.   
 
 Using the data we get from accelerometer and magnetometer we can estimate the Euler angles.   
