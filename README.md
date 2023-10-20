@@ -109,7 +109,7 @@ http://esp32.local/
 WEB pages are stored in the html folder.   
 I used [this](https://canvas-gauges.com/) for gauge display.   
 I used [this](https://threejs.org/) for 3D display.   
-You can change it as you like.   
+You can change the design and color according to your preference.   
 
 ### View Euler angles using PyTeapot   
 You can view Euler angles using [this](https://github.com/thecountoftuscany/PyTeapot-Quaternion-Euler-cube-rotation) tool.   
