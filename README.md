@@ -15,9 +15,6 @@ As you can see, the X, Y and Z axes are quite off-center.
 Then use the accelerometer and magnetometer to find the Euler angle.   
 ![lsm303dlhc-euler](https://user-images.githubusercontent.com/6020549/232389292-acb291b7-b92d-44e7-83ab-ca3e8048960c.JPG)
 
-I used [this](https://github.com/jrowberg/i2cdevlib/tree/master/Arduino/LSM303DLHC) library.   
-
-
 # Software requiment   
 ESP-IDF V4.4/V5.x.   
 ESP-IDF V5.0 is required when using ESP32-C2.   
