@@ -150,7 +150,7 @@ $ git clone https://github.com/thecountoftuscany/PyTeapot-Quaternion-Euler-cube-
 $ cd PyTeapot-Quaternion-Euler-cube-rotation
 $ python pyteapot.py
 ```
-![Image](https://github.com/user-attachments/assets/3aa9fd0d-2a0a-4a7c-ac40-4b84a70acaaf)
+![PyTeapot-Windows](https://github.com/user-attachments/assets/2b0a1a70-40cb-47e5-8f51-eb4fe3adb1ab)
 
 
 
