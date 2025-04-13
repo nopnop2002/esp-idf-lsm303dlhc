@@ -6,8 +6,11 @@ Usually 6Dof IMU has accelerometer and gyroscope, but this IMU has accelerometer
 Using the data we get from accelerometer and magnetometer we can estimate the Euler angles.   
 Euler angles are roll, pitch and yaw.   
 It's very intuitive and easy to understand.   
-![a-Pitch-yaw-and-roll-angles-of-an-aircraft-with-body-orientation-O-u-v-original](https://user-images.githubusercontent.com/6020549/226072914-a7f923fc-eb6e-4d19-b2ff-8c9f2749ee6f.jpg)
+![a-Pitch-yaw-and-roll-angles-of-an-aircraft-with-body-orientation-O-u-v-original](https://user-images.githubusercontent.com/6020549/226072914-a7f923fc-eb6e-4d19-b2ff-8c9f2749ee6f.jpg)   
+You can view like this.   
+![Image](https://github.com/user-attachments/assets/6d81eec0-5b80-4e5f-ae97-689742253f9a)   
 
+# Installation overview   
 First, calibrate the compass and find the offset value for each axis.   
 As you can see, the X, Y and Z axes are quite off-center.   
 ![calibrate-0](https://user-images.githubusercontent.com/6020549/227759768-63737d65-e080-465e-b7dc-e5eb4dc230e7.jpg)
