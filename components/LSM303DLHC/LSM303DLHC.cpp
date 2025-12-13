@@ -32,7 +32,6 @@ THE SOFTWARE.
 
 #include "LSM303DLHC.h"
 
-#if 0
 /** Default constructor, uses default I2C address.
  * @see LSM303DLHC_DEFAULT_ADDRESS_A
  * @see LSM303DLHC_DEFAULT_ADDRESS_M
@@ -42,7 +41,6 @@ LSM303DLHC::LSM303DLHC() {
     devAddrM = LSM303DLHC_DEFAULT_ADDRESS_M;
     endianMode = LSM303DLHC_LITTLE_ENDIAN;
 }
-#endif
 
 /** Specific address constructor.
 @param addressA I2C accelerometer address

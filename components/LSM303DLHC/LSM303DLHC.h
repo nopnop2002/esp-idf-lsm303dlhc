@@ -379,7 +379,7 @@ THE SOFTWARE.
 
 class LSM303DLHC {
     public:
-        //LSM303DLHC();
+        LSM303DLHC();
         LSM303DLHC(uint8_t addressA, uint8_t addressM);
 
         void initialize();
