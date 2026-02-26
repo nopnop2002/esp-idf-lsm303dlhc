@@ -117,7 +117,7 @@ void getOrientation(float *roll, float *pitch, float *heading) {
 
 void lsm303(void *pvParameters){
 	// Initialize device
-	accelMag.initialize();
+	accelMag.initialize(400000);
 	
 	if (!accelMag.testConnection()) {
 		ESP_LOGE(TAG, "testConnection fail");
