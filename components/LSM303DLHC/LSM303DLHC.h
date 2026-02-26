@@ -380,9 +380,9 @@ THE SOFTWARE.
 class LSM303DLHC {
     public:
         LSM303DLHC();
-        LSM303DLHC(uint8_t addressA, uint8_t addressM);
+        LSM303DLHC(uint16_t addressA, uint16_t addressM);
 
-        void initialize();
+        void initialize(uint32_t clkSpeed);
         bool testConnection();
 
 // ----------------------------------------------------------------------------
@@ -649,8 +649,10 @@ class LSM303DLHC {
 // Many devices will not require more member variables than this.
 // ----------------------------------------------------------------------------
     private:
-        uint8_t devAddrA;
-        uint8_t devAddrM;
+        uint16_t devAddrA; // I2C device address of accerometer
+        uint16_t devAddrM; // I2C device address of megnetometer
+        i2c_master_dev_handle_t devHandleA; // I2C device handle of accerometer
+        i2c_master_dev_handle_t devHandleM; // I2C device handle of megnetometer
         uint8_t buffer[6];
         bool endianMode;
 };

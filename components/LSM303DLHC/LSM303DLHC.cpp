@@ -50,7 +50,7 @@ LSM303DLHC::LSM303DLHC() {
 @see LSM303DLHC_ADDRESS_A
 @see LSM303DLHC_ADDRESS_M
  */
-LSM303DLHC::LSM303DLHC(uint8_t addressA, uint8_t addressM) {
+LSM303DLHC::LSM303DLHC(uint16_t addressA, uint16_t addressM) {
     devAddrA = addressA;
     devAddrM = addressM;
     endianMode = LSM303DLHC_LITTLE_ENDIAN;
@@ -62,9 +62,12 @@ magnetometer data rates (200hz and 220hz respectively).
 @see LSM303DLHC_RA_CTRL_REG1_A
 @see LSM303DLHC_RA_CRA_REG_M
 */
-void LSM303DLHC::initialize() {
-    I2Cdev::writeByte(devAddrA, LSM303DLHC_RA_CTRL_REG1_A, 0b01100111);
-    I2Cdev::writeByte(devAddrM, LSM303DLHC_RA_CRA_REG_M, 0b00011100);
+void LSM303DLHC::initialize(uint32_t clkSpeed) {
+    // initialize device
+    devHandleA = I2Cdev::addDevice(devAddrA, clkSpeed);
+    devHandleM = I2Cdev::addDevice(devAddrM, clkSpeed);
+    I2Cdev::writeByte(devHandleA, LSM303DLHC_RA_CTRL_REG1_A, 0b01100111);
+    I2Cdev::writeByte(devHandleM, LSM303DLHC_RA_CRA_REG_M, 0b00011100);
     // ----------------------------------------------------------------------------
     // STUB TODO:
     // Perform any important initialization here. Maybe nothing is required, but
@@ -79,22 +82,22 @@ register, checked, and then the original contents are written back.
  * @return True if connection is valid, false otherwise
  */
 bool LSM303DLHC::testConnection() {
-    I2Cdev::readByte(devAddrA, LSM303DLHC_RA_CTRL_REG1_A, buffer);
+    I2Cdev::readByte(devHandleA, LSM303DLHC_RA_CTRL_REG1_A, buffer);
     uint8_t origValA = buffer[0];
-    I2Cdev::readByte(devAddrM, LSM303DLHC_RA_CRA_REG_M, buffer);
+    I2Cdev::readByte(devHandleM, LSM303DLHC_RA_CRA_REG_M, buffer);
     uint8_t origValM = buffer[0];
 
     uint8_t zeros = 0b00000000;
-    I2Cdev::writeByte(devAddrA, LSM303DLHC_RA_CTRL_REG1_A, zeros);
-    I2Cdev::writeByte(devAddrM, LSM303DLHC_RA_CRA_REG_M, zeros);
+    I2Cdev::writeByte(devHandleA, LSM303DLHC_RA_CTRL_REG1_A, zeros);
+    I2Cdev::writeByte(devHandleM, LSM303DLHC_RA_CRA_REG_M, zeros);
     
-    I2Cdev::readByte(devAddrA, LSM303DLHC_RA_CTRL_REG1_A, buffer);
+    I2Cdev::readByte(devHandleA, LSM303DLHC_RA_CTRL_REG1_A, buffer);
     uint8_t newValA = buffer[0];
-    I2Cdev::readByte(devAddrM, LSM303DLHC_RA_CRA_REG_M, buffer);
+    I2Cdev::readByte(devHandleM, LSM303DLHC_RA_CRA_REG_M, buffer);
     uint8_t newValM = buffer[0];
     
-    I2Cdev::writeByte(devAddrA, LSM303DLHC_RA_CTRL_REG1_A, origValA);
-    I2Cdev::writeByte(devAddrM, LSM303DLHC_RA_CRA_REG_M, origValM);
+    I2Cdev::writeByte(devHandleA, LSM303DLHC_RA_CTRL_REG1_A, origValA);
+    I2Cdev::writeByte(devHandleM, LSM303DLHC_RA_CRA_REG_M, origValM);
 
     if ((newValM == zeros) and (newValA == zeros)) {
       return true;
@@ -162,7 +165,7 @@ void LSM303DLHC::setAccelOutputDataRate(uint16_t rate) {
     writeVal = LSM303DLHC_ODR_RATE_1344_N_5376_LP;
   }
   
-  I2Cdev::writeBits(devAddrA, LSM303DLHC_RA_CTRL_REG1_A, LSM303DLHC_ODR_BIT, LSM303DLHC_ODR_LENGTH, writeVal); 
+  I2Cdev::writeBits(devHandleA, LSM303DLHC_RA_CTRL_REG1_A, LSM303DLHC_ODR_BIT, LSM303DLHC_ODR_LENGTH, writeVal); 
 }
 
 /** Get the output data rate
@@ -181,7 +184,7 @@ void LSM303DLHC::setAccelOutputDataRate(uint16_t rate) {
  * @see LSM303DLHC_RATE_1344_N_5376_LP
  */
 uint16_t LSM303DLHC::getAccelOutputDataRate() {
-  I2Cdev::readBits(devAddrA, LSM303DLHC_RA_CTRL_REG1_A, LSM303DLHC_ODR_BIT,
+  I2Cdev::readBits(devHandleA, LSM303DLHC_RA_CTRL_REG1_A, LSM303DLHC_ODR_BIT,
     LSM303DLHC_ODR_LENGTH, buffer);
   uint8_t rate = buffer[0];
   
@@ -217,7 +220,7 @@ uint16_t LSM303DLHC::getAccelOutputDataRate() {
 @see LSM303DLHC_LPEN_BIT
 */
 void LSM303DLHC::setAccelLowPowerEnabled(bool enabled){
-  I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_CTRL_REG1_A, LSM303DLHC_LPEN_BIT, enabled);
+  I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_CTRL_REG1_A, LSM303DLHC_LPEN_BIT, enabled);
 }
 
 /*Get whether the accelerometer low power mode is enabled
@@ -226,7 +229,7 @@ void LSM303DLHC::setAccelLowPowerEnabled(bool enabled){
 @see LSM303DLHC_LPEN_BIT
 */
 bool LSM303DLHC::getAccelLowPowerEnabled(){
-  I2Cdev::readBit(devAddrA, LSM303DLHC_RA_CTRL_REG1_A, LSM303DLHC_LPEN_BIT, buffer);
+  I2Cdev::readBit(devHandleA, LSM303DLHC_RA_CTRL_REG1_A, LSM303DLHC_LPEN_BIT, buffer);
   return buffer[0];
 }
 
@@ -236,7 +239,7 @@ bool LSM303DLHC::getAccelLowPowerEnabled(){
  * @see LSM303DLHC_ZEN_BIT
  */
 void LSM303DLHC::setAccelZEnabled(bool enabled) {
-  I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_CTRL_REG1_A, LSM303DLHC_ZEN_BIT, enabled);
+  I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_CTRL_REG1_A, LSM303DLHC_ZEN_BIT, enabled);
 }
 
 /** Get whether Z axis data is enabled
@@ -245,7 +248,7 @@ void LSM303DLHC::setAccelZEnabled(bool enabled) {
  * @see LSM303DLHC_ZEN_BIT
  */
 bool LSM303DLHC::getAccelZEnabled() {
-  I2Cdev::readBit(devAddrA, LSM303DLHC_RA_CTRL_REG1_A, LSM303DLHC_ZEN_BIT, buffer);
+  I2Cdev::readBit(devHandleA, LSM303DLHC_RA_CTRL_REG1_A, LSM303DLHC_ZEN_BIT, buffer);
   return buffer[0];
 }
 
@@ -255,7 +258,7 @@ bool LSM303DLHC::getAccelZEnabled() {
  * @see LSM303DLHC_YEN_BIT
  */
 void LSM303DLHC::setAccelYEnabled(bool enabled) {
-  I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_CTRL_REG1_A, LSM303DLHC_YEN_BIT, enabled);
+  I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_CTRL_REG1_A, LSM303DLHC_YEN_BIT, enabled);
 }
 
 /** Get whether Y axis data is enabled
@@ -264,7 +267,7 @@ void LSM303DLHC::setAccelYEnabled(bool enabled) {
  * @see LSM303DLHC_YEN_BIT
  */
 bool LSM303DLHC::getAccelYEnabled() {
-  I2Cdev::readBit(devAddrA, LSM303DLHC_RA_CTRL_REG1_A, LSM303DLHC_YEN_BIT, buffer);
+  I2Cdev::readBit(devHandleA, LSM303DLHC_RA_CTRL_REG1_A, LSM303DLHC_YEN_BIT, buffer);
   return buffer[0];
 }
 
@@ -274,7 +277,7 @@ bool LSM303DLHC::getAccelYEnabled() {
  * @see LSM303DLHC_XEN_BIT
  */
 void LSM303DLHC::setAccelXEnabled(bool enabled) {
-  I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_CTRL_REG1_A, LSM303DLHC_XEN_BIT, enabled);
+  I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_CTRL_REG1_A, LSM303DLHC_XEN_BIT, enabled);
 }
 
 /** Get whether X axis data is enabled
@@ -283,7 +286,7 @@ void LSM303DLHC::setAccelXEnabled(bool enabled) {
  * @see LSM303DLHC_XEN_BIT
  */
 bool LSM303DLHC::getAccelXEnabled() {
-  I2Cdev::readBit(devAddrA, LSM303DLHC_RA_CTRL_REG1_A, LSM303DLHC_XEN_BIT, buffer);
+  I2Cdev::readBit(devHandleA, LSM303DLHC_RA_CTRL_REG1_A, LSM303DLHC_XEN_BIT, buffer);
   return buffer[0];
 }
 
@@ -300,7 +303,7 @@ bool LSM303DLHC::getAccelXEnabled() {
  * @see LSM303DLHC_HPM_AUTORESET
  */
 void LSM303DLHC::setAccelHighPassMode(uint8_t mode) {
-  I2Cdev::writeBits(devAddrA, LSM303DLHC_RA_CTRL_REG2_A, LSM303DLHC_HPM_BIT, 
+  I2Cdev::writeBits(devHandleA, LSM303DLHC_RA_CTRL_REG2_A, LSM303DLHC_HPM_BIT, 
     LSM303DLHC_HPM_LENGTH, mode);
 }
 
@@ -315,7 +318,7 @@ void LSM303DLHC::setAccelHighPassMode(uint8_t mode) {
  * @see LSM303DLHC_HPM_AUTORESET
  */
 uint8_t LSM303DLHC::getAccelHighPassMode() {
-  I2Cdev::readBits(devAddrA, LSM303DLHC_RA_CTRL_REG2_A, LSM303DLHC_HPM_BIT, 
+  I2Cdev::readBits(devHandleA, LSM303DLHC_RA_CTRL_REG2_A, LSM303DLHC_HPM_BIT, 
     LSM303DLHC_HPM_LENGTH, buffer);
   return buffer[0];
 }
@@ -331,7 +334,7 @@ uint8_t LSM303DLHC::getAccelHighPassMode() {
  * @see LSM303DLHC_HPCF4
  */
 void LSM303DLHC::setAccelHighPassFilterCutOffFrequencyLevel(uint8_t level) {
-  I2Cdev::writeBits(devAddrA, LSM303DLHC_RA_CTRL_REG2_A, LSM303DLHC_HPCF_BIT, 
+  I2Cdev::writeBits(devHandleA, LSM303DLHC_RA_CTRL_REG2_A, LSM303DLHC_HPCF_BIT, 
     LSM303DLHC_HPCF_LENGTH, level);
 }
 
@@ -346,7 +349,7 @@ void LSM303DLHC::setAccelHighPassFilterCutOffFrequencyLevel(uint8_t level) {
  * @see LSM303DLHC_HPCF4
  */
 uint8_t LSM303DLHC::getAccelHighPassFilterCutOffFrequencyLevel() {
-  I2Cdev::readBits(devAddrA, LSM303DLHC_RA_CTRL_REG2_A, LSM303DLHC_HPCF_BIT, 
+  I2Cdev::readBits(devHandleA, LSM303DLHC_RA_CTRL_REG2_A, LSM303DLHC_HPCF_BIT, 
     LSM303DLHC_HPCF_LENGTH, buffer);
   return buffer[0];
 }
@@ -359,7 +362,7 @@ uint8_t LSM303DLHC::getAccelHighPassFilterCutOffFrequencyLevel() {
 @see LSM303DLHC_I1_CLICK_BIT
 */
 void LSM303DLHC::setAccelINT1ClickEnabled(bool enabled){
-  I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_CTRL_REG3_A, LSM303DLHC_I1_CLICK_BIT, enabled);
+  I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_CTRL_REG3_A, LSM303DLHC_I1_CLICK_BIT, enabled);
 }
 
 /*Get whether the Click interrupt is routed to the INT1 pin.
@@ -368,7 +371,7 @@ void LSM303DLHC::setAccelINT1ClickEnabled(bool enabled){
 @see LSM303DLHC_I1_CLICK_BIT
 */
 bool LSM303DLHC::getAccelINT1ClickEnabled(){
-  I2Cdev::readBit(devAddrA, LSM303DLHC_RA_CTRL_REG3_A, LSM303DLHC_I1_CLICK_BIT, buffer);
+  I2Cdev::readBit(devHandleA, LSM303DLHC_RA_CTRL_REG3_A, LSM303DLHC_I1_CLICK_BIT, buffer);
   return buffer[0];
 }
 
@@ -378,7 +381,7 @@ bool LSM303DLHC::getAccelINT1ClickEnabled(){
 @see LSM303DLHC_I1_AOI1_BIT
 */
 void LSM303DLHC::setAccelINT1AOI1Enabled(bool enabled){
-  I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_CTRL_REG3_A, LSM303DLHC_I1_AOI1_BIT, enabled);
+  I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_CTRL_REG3_A, LSM303DLHC_I1_AOI1_BIT, enabled);
 }
 
 /*Get whether the AOR1 interrupt is routed to the INT1 pin.
@@ -387,7 +390,7 @@ void LSM303DLHC::setAccelINT1AOI1Enabled(bool enabled){
 @see LSM303DLHC_I1_AOI1_BIT
 */
 bool LSM303DLHC::getAccelINT1AOI1Enabled(){
-  I2Cdev::readBit(devAddrA, LSM303DLHC_RA_CTRL_REG3_A, LSM303DLHC_I1_AOI1_BIT, buffer);
+  I2Cdev::readBit(devHandleA, LSM303DLHC_RA_CTRL_REG3_A, LSM303DLHC_I1_AOI1_BIT, buffer);
   return buffer[0];
 }
 
@@ -397,7 +400,7 @@ bool LSM303DLHC::getAccelINT1AOI1Enabled(){
 @see LSM303DLHC_I1_AOI2_BIT
 */
 void LSM303DLHC::setAccelINT1AOI2Enabled(bool enabled){
-  I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_CTRL_REG3_A, LSM303DLHC_I1_AOI2_BIT, enabled);
+  I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_CTRL_REG3_A, LSM303DLHC_I1_AOI2_BIT, enabled);
 }
 
 /*Get whether the AOR2 interrupt is routed to the INT1 pin.
@@ -406,7 +409,7 @@ void LSM303DLHC::setAccelINT1AOI2Enabled(bool enabled){
 @see LSM303DLHC_I1_AOI2_BIT
 */
 bool LSM303DLHC::getAccelINT1AOI2Enabled(){
-  I2Cdev::readBit(devAddrA, LSM303DLHC_RA_CTRL_REG3_A, LSM303DLHC_I1_AOI2_BIT, buffer);
+  I2Cdev::readBit(devHandleA, LSM303DLHC_RA_CTRL_REG3_A, LSM303DLHC_I1_AOI2_BIT, buffer);
   return buffer[0];
 }
 
@@ -416,7 +419,7 @@ bool LSM303DLHC::getAccelINT1AOI2Enabled(){
 @see LSM303DLHC_I1_DRDY1_BIT
 */
 void LSM303DLHC::setAccelINT1DataReady1Enabled(bool enabled){
-  I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_CTRL_REG3_A, LSM303DLHC_I1_DRDY1_BIT, enabled);
+  I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_CTRL_REG3_A, LSM303DLHC_I1_DRDY1_BIT, enabled);
 }
 
 /*Get whether the Data Ready 1 interrupt is routed to the INT1 pin.
@@ -425,7 +428,7 @@ void LSM303DLHC::setAccelINT1DataReady1Enabled(bool enabled){
 @see LSM303DLHC_I1_DRDY1_BIT
 */
 bool LSM303DLHC::getAccelINT1DataReady1Enabled(){
-  I2Cdev::readBit(devAddrA, LSM303DLHC_RA_CTRL_REG3_A, LSM303DLHC_I1_DRDY1_BIT, buffer);
+  I2Cdev::readBit(devHandleA, LSM303DLHC_RA_CTRL_REG3_A, LSM303DLHC_I1_DRDY1_BIT, buffer);
   return buffer[0];
 }
 
@@ -435,7 +438,7 @@ bool LSM303DLHC::getAccelINT1DataReady1Enabled(){
 @see LSM303DLHC_I1_DRDY2_BIT
 */
 void LSM303DLHC::setAccelINT1DataReady2Enabled(bool enabled){
-  I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_CTRL_REG3_A, LSM303DLHC_I1_DRDY2_BIT, enabled);
+  I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_CTRL_REG3_A, LSM303DLHC_I1_DRDY2_BIT, enabled);
 }
 
 /*Get whether the Data Ready 2 interrupt is routed to the INT1 pin.
@@ -444,7 +447,7 @@ void LSM303DLHC::setAccelINT1DataReady2Enabled(bool enabled){
 @see LSM303DLHC_I1_DRDY2_BIT
 */
 bool LSM303DLHC::getAccelINT1DataReady2Enabled(){
-  I2Cdev::readBit(devAddrA, LSM303DLHC_RA_CTRL_REG3_A, LSM303DLHC_I1_DRDY2_BIT, buffer);
+  I2Cdev::readBit(devHandleA, LSM303DLHC_RA_CTRL_REG3_A, LSM303DLHC_I1_DRDY2_BIT, buffer);
   return buffer[0];
 }
 
@@ -454,7 +457,7 @@ bool LSM303DLHC::getAccelINT1DataReady2Enabled(){
 @see LSM303DLHC_I1_WTM_BIT
 */
 void LSM303DLHC::setAccelINT1FIFOWatermarkEnabled(bool enabled){
-  I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_CTRL_REG3_A, LSM303DLHC_I1_WTM_BIT, enabled);
+  I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_CTRL_REG3_A, LSM303DLHC_I1_WTM_BIT, enabled);
 }
 
 /*Get whether the FIFO watermark interrupt is routed to the INT1 pin.
@@ -463,7 +466,7 @@ void LSM303DLHC::setAccelINT1FIFOWatermarkEnabled(bool enabled){
 @see LSM303DLHC_I1_WTM_BIT
 */
 bool LSM303DLHC::getAccelINT1FIFOWatermarkEnabled(){
-  I2Cdev::readBit(devAddrA, LSM303DLHC_RA_CTRL_REG3_A, LSM303DLHC_I1_WTM_BIT, buffer);
+  I2Cdev::readBit(devHandleA, LSM303DLHC_RA_CTRL_REG3_A, LSM303DLHC_I1_WTM_BIT, buffer);
   return buffer[0];
 }
 
@@ -473,7 +476,7 @@ bool LSM303DLHC::getAccelINT1FIFOWatermarkEnabled(){
 @see LSM303DLHC_I1_OVERRUN_BIT
 */
 void LSM303DLHC::setAccelINT1FIFOOverunEnabled(bool enabled){
-  I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_CTRL_REG3_A, LSM303DLHC_I1_OVERRUN_BIT, enabled);
+  I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_CTRL_REG3_A, LSM303DLHC_I1_OVERRUN_BIT, enabled);
 }
 
 /*Get whether the FIFO overrun interrupt is routed to the INT1 pin.
@@ -482,7 +485,7 @@ void LSM303DLHC::setAccelINT1FIFOOverunEnabled(bool enabled){
 @see LSM303DLHC_I1_OVERRUN_BIT
 */
 bool LSM303DLHC::getAccelINT1FIFOOverunEnabled(){
-  I2Cdev::readBit(devAddrA, LSM303DLHC_RA_CTRL_REG3_A, LSM303DLHC_I1_OVERRUN_BIT, buffer);
+  I2Cdev::readBit(devHandleA, LSM303DLHC_RA_CTRL_REG3_A, LSM303DLHC_I1_OVERRUN_BIT, buffer);
   return buffer[0];
 }
 
@@ -494,7 +497,7 @@ bool LSM303DLHC::getAccelINT1FIFOOverunEnabled(){
  * @see LSM303DLHC_BDU_BIT
  */
 void LSM303DLHC::setAccelBlockDataUpdateEnabled(bool enabled) {
-  I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_CTRL_REG4_A, LSM303DLHC_BDU_BIT, enabled);
+  I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_CTRL_REG4_A, LSM303DLHC_BDU_BIT, enabled);
 }
 
 /** Get the BDU enabled state
@@ -503,7 +506,7 @@ void LSM303DLHC::setAccelBlockDataUpdateEnabled(bool enabled) {
  * @see LSM303DLHC_BDU_BIT
  */
 bool LSM303DLHC::getAccelBlockDataUpdateEnabled() {
-  I2Cdev::readBit(devAddrA, LSM303DLHC_RA_CTRL_REG4_A, LSM303DLHC_BDU_BIT, buffer);
+  I2Cdev::readBit(devHandleA, LSM303DLHC_RA_CTRL_REG4_A, LSM303DLHC_BDU_BIT, buffer);
   return buffer[0];
 }
 
@@ -518,7 +521,7 @@ bool LSM303DLHC::getAccelBlockDataUpdateEnabled() {
  * @see LSM303DLHC_LITTLE_ENDIAN
  */
 void LSM303DLHC::setAccelEndianMode(bool endianness) {
-  I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_CTRL_REG4_A, LSM303DLHC_BLE_BIT, 
+  I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_CTRL_REG4_A, LSM303DLHC_BLE_BIT, 
     endianness);
   endianMode = getAccelEndianMode();
 }
@@ -532,7 +535,7 @@ void LSM303DLHC::setAccelEndianMode(bool endianness) {
  */
 bool LSM303DLHC::getAccelEndianMode() {
   return endianMode;
-  I2Cdev::readBit(devAddrA, LSM303DLHC_RA_CTRL_REG4_A, LSM303DLHC_BLE_BIT,
+  I2Cdev::readBit(devHandleA, LSM303DLHC_RA_CTRL_REG4_A, LSM303DLHC_BLE_BIT,
     buffer);
   return buffer[0];
 }
@@ -560,7 +563,7 @@ void LSM303DLHC::setAccelFullScale(uint8_t scale) {
     writeBits = LSM303DLHC_FS_16;
   }
 
-  I2Cdev::writeBits(devAddrA, LSM303DLHC_RA_CTRL_REG4_A, LSM303DLHC_FS_BIT, 
+  I2Cdev::writeBits(devHandleA, LSM303DLHC_RA_CTRL_REG4_A, LSM303DLHC_FS_BIT, 
     LSM303DLHC_FS_LENGTH, writeBits);
 }
 
@@ -575,7 +578,7 @@ void LSM303DLHC::setAccelFullScale(uint8_t scale) {
  * @see LSM303DLHC_FS_16
  */
 uint8_t LSM303DLHC::getAccelFullScale() {
-  I2Cdev::readBits(devAddrA, LSM303DLHC_RA_CTRL_REG4_A, 
+  I2Cdev::readBits(devHandleA, LSM303DLHC_RA_CTRL_REG4_A, 
     LSM303DLHC_FS_BIT, LSM303DLHC_FS_LENGTH, buffer);
   uint8_t readBits = buffer[0];
   
@@ -596,7 +599,7 @@ uint8_t LSM303DLHC::getAccelFullScale() {
 @see LSM303DLHC_HR_BIT
 */
 void LSM303DLHC::setAccelHighResOutputEnabled(bool enabled){
-  I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_CTRL_REG4_A, LSM303DLHC_HR_BIT,
+  I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_CTRL_REG4_A, LSM303DLHC_HR_BIT,
     enabled);
 }
 
@@ -606,7 +609,7 @@ void LSM303DLHC::setAccelHighResOutputEnabled(bool enabled){
 @see LSM303DLHC_HR_BIT
 */
 bool LSM303DLHC::getAccelHighResOutputEnabled(){
-  I2Cdev::readBit(devAddrA, LSM303DLHC_RA_CTRL_REG4_A, LSM303DLHC_HR_BIT,
+  I2Cdev::readBit(devHandleA, LSM303DLHC_RA_CTRL_REG4_A, LSM303DLHC_HR_BIT,
     buffer);
   return buffer[0];
 }
@@ -619,7 +622,7 @@ bool LSM303DLHC::getAccelHighResOutputEnabled(){
  * @see LSM303DLHC_SIM_3W
  */
 void LSM303DLHC::setAccelSPIMode(bool mode) {
-  I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_CTRL_REG4_A, LSM303DLHC_SIM_BIT, mode);
+  I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_CTRL_REG4_A, LSM303DLHC_SIM_BIT, mode);
 }
 
 /** Get the SPI mode
@@ -630,7 +633,7 @@ void LSM303DLHC::setAccelSPIMode(bool mode) {
  * @see LSM303DLHC_SIM_3W
  */
 bool LSM303DLHC::getAccelSPIMode() {
-  I2Cdev::readBit(devAddrA, LSM303DLHC_RA_CTRL_REG4_A, LSM303DLHC_SIM_BIT, 
+  I2Cdev::readBit(devHandleA, LSM303DLHC_RA_CTRL_REG4_A, LSM303DLHC_SIM_BIT, 
     buffer);
   return buffer[0];
 }
@@ -642,7 +645,7 @@ bool LSM303DLHC::getAccelSPIMode() {
  * @see LSM303DLHC_BOOT_BIT
  */
 void LSM303DLHC::rebootAccelMemoryContent() {
-  I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_CTRL_REG5_A, LSM303DLHC_BOOT_BIT, true);
+  I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_CTRL_REG5_A, LSM303DLHC_BOOT_BIT, true);
 }
 
 /** Set whether the FIFO buffer is enabled
@@ -651,7 +654,7 @@ void LSM303DLHC::rebootAccelMemoryContent() {
  * @see LSM303DLHC_FIFO_EN_BIT
  */
 void LSM303DLHC::setAccelFIFOEnabled(bool enabled) {
-  I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_CTRL_REG5_A, LSM303DLHC_FIFO_EN_BIT, 
+  I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_CTRL_REG5_A, LSM303DLHC_FIFO_EN_BIT, 
     enabled);
 }
 
@@ -661,7 +664,7 @@ void LSM303DLHC::setAccelFIFOEnabled(bool enabled) {
  * @see LSM303DLHC_FIFO_EN_BIT
  */
 bool LSM303DLHC::getAccelFIFOEnabled() {
-  I2Cdev::readBit(devAddrA, LSM303DLHC_RA_CTRL_REG5_A, LSM303DLHC_FIFO_EN_BIT, 
+  I2Cdev::readBit(devHandleA, LSM303DLHC_RA_CTRL_REG5_A, LSM303DLHC_FIFO_EN_BIT, 
     buffer);
   return buffer[0];
 }
@@ -672,7 +675,7 @@ bool LSM303DLHC::getAccelFIFOEnabled() {
 @see LSM303DLHC_LIR_INT1_BIT
 */
 void LSM303DLHC::setAccelInterrupt1RequestLatched(bool latched){
-  I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_CTRL_REG5_A, LSM303DLHC_LIR_INT1_BIT, 
+  I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_CTRL_REG5_A, LSM303DLHC_LIR_INT1_BIT, 
     latched);
 }
 
@@ -682,7 +685,7 @@ void LSM303DLHC::setAccelInterrupt1RequestLatched(bool latched){
 @see LSM303DLHC_LIR_INT1_BIT
 */
 bool LSM303DLHC::getAccelInterrupt1RequestLatched(){
-  I2Cdev::readBit(devAddrA, LSM303DLHC_RA_CTRL_REG5_A, LSM303DLHC_LIR_INT1_BIT,
+  I2Cdev::readBit(devHandleA, LSM303DLHC_RA_CTRL_REG5_A, LSM303DLHC_LIR_INT1_BIT,
     buffer);
   return buffer[0];
 }
@@ -693,7 +696,7 @@ bool LSM303DLHC::getAccelInterrupt1RequestLatched(){
 @see LSM303DLHC_LIR_INT2_BIT
 */
 void LSM303DLHC::setAccelInterrupt2RequestLatched(bool latched){
-  I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_CTRL_REG5_A, LSM303DLHC_LIR_INT2_BIT,
+  I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_CTRL_REG5_A, LSM303DLHC_LIR_INT2_BIT,
     latched);
 }
 
@@ -703,7 +706,7 @@ void LSM303DLHC::setAccelInterrupt2RequestLatched(bool latched){
 @see LSM303DLHC_LIR_INT2_BIT
 */
 bool LSM303DLHC::getAccelInterrupt2RequestLatched(){
-  I2Cdev::readBit(devAddrA, LSM303DLHC_RA_CTRL_REG5_A, LSM303DLHC_LIR_INT2_BIT,
+  I2Cdev::readBit(devHandleA, LSM303DLHC_RA_CTRL_REG5_A, LSM303DLHC_LIR_INT2_BIT,
     buffer);
   return buffer[0];
 }
@@ -714,7 +717,7 @@ bool LSM303DLHC::getAccelInterrupt2RequestLatched(){
 @see LSM303DLHC_D4D_INT1_BIT
 */
 void LSM303DLHC::setAccelDetect4DInterrupt1Enabled(bool enabled){
-  I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_CTRL_REG5_A, LSM303DLHC_D4D_INT1_BIT,
+  I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_CTRL_REG5_A, LSM303DLHC_D4D_INT1_BIT,
     enabled);
 }
 
@@ -724,7 +727,7 @@ void LSM303DLHC::setAccelDetect4DInterrupt1Enabled(bool enabled){
 @see LSM303DLHC_D4D_INT1_BIT
 */
 bool LSM303DLHC::getAccelDetect4DInterrupt1Enabled(){
-  I2Cdev::readBit(devAddrA, LSM303DLHC_RA_CTRL_REG5_A, LSM303DLHC_D4D_INT1_BIT,
+  I2Cdev::readBit(devHandleA, LSM303DLHC_RA_CTRL_REG5_A, LSM303DLHC_D4D_INT1_BIT,
     buffer);
   return buffer[0];
 }
@@ -735,7 +738,7 @@ bool LSM303DLHC::getAccelDetect4DInterrupt1Enabled(){
 @see LSM303DLHC_D4D_INT2_BIT
 */
 void LSM303DLHC::setAccelDetect4DInterrupt2Enabled(bool enabled){
-  I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_CTRL_REG5_A, LSM303DLHC_D4D_INT2_BIT,
+  I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_CTRL_REG5_A, LSM303DLHC_D4D_INT2_BIT,
     enabled);
 }
 
@@ -745,7 +748,7 @@ void LSM303DLHC::setAccelDetect4DInterrupt2Enabled(bool enabled){
 @see LSM303DLHC_D4D_INT2_BIT
 */
 bool LSM303DLHC::getAccelDetect4DInterrupt2Enabled(){
-  I2Cdev::readBit(devAddrA, LSM303DLHC_RA_CTRL_REG5_A, LSM303DLHC_D4D_INT2_BIT,
+  I2Cdev::readBit(devHandleA, LSM303DLHC_RA_CTRL_REG5_A, LSM303DLHC_D4D_INT2_BIT,
     buffer);
   return buffer[0];
 }
@@ -759,7 +762,7 @@ bool LSM303DLHC::getAccelDetect4DInterrupt2Enabled(){
 @see LSM303DLHC_I2_CLICK_BIT
 */
 void LSM303DLHC::setAccelINT2ClickEnabled(bool enabled){
-  I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_CTRL_REG6_A, LSM303DLHC_I2_CLICK_BIT, enabled);
+  I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_CTRL_REG6_A, LSM303DLHC_I2_CLICK_BIT, enabled);
 }
 
 /*Get whether the Click interrupt is routed to the INT2 pin.
@@ -768,7 +771,7 @@ void LSM303DLHC::setAccelINT2ClickEnabled(bool enabled){
 @see LSM303DLHC_I2_CLICK_BIT
 */
 bool LSM303DLHC::getAccelINT2ClickEnabled(){
-  I2Cdev::readBit(devAddrA, LSM303DLHC_RA_CTRL_REG6_A, LSM303DLHC_I2_CLICK_BIT, buffer);
+  I2Cdev::readBit(devHandleA, LSM303DLHC_RA_CTRL_REG6_A, LSM303DLHC_I2_CLICK_BIT, buffer);
   return buffer[0];
 }
 
@@ -778,7 +781,7 @@ bool LSM303DLHC::getAccelINT2ClickEnabled(){
 @see LSM303DLHC_I2_INT1_BIT
 */
 void LSM303DLHC::setAccelINT2Interrupt1Enabled(bool enabled){
-  I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_CTRL_REG6_A, LSM303DLHC_I2_INT1_BIT, enabled);
+  I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_CTRL_REG6_A, LSM303DLHC_I2_INT1_BIT, enabled);
 }
 
 /*Get whether interrupt 1 is routed to the INT2 pin.
@@ -787,7 +790,7 @@ void LSM303DLHC::setAccelINT2Interrupt1Enabled(bool enabled){
 @see LSM303DLHC_I2_INT1_BIT
 */
 bool LSM303DLHC::getAccelINT2Interrupt1Enabled(){
-  I2Cdev::readBit(devAddrA, LSM303DLHC_RA_CTRL_REG6_A, LSM303DLHC_I2_INT1_BIT, buffer);
+  I2Cdev::readBit(devHandleA, LSM303DLHC_RA_CTRL_REG6_A, LSM303DLHC_I2_INT1_BIT, buffer);
   return buffer[0];
 }
 
@@ -797,7 +800,7 @@ bool LSM303DLHC::getAccelINT2Interrupt1Enabled(){
 @see LSM303DLHC_I2_INT2_BIT
 */
 void LSM303DLHC::setAccelINT2Interrupt2Enabled(bool enabled){
-  I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_CTRL_REG6_A, LSM303DLHC_I2_INT2_BIT, enabled);
+  I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_CTRL_REG6_A, LSM303DLHC_I2_INT2_BIT, enabled);
 }
 
 /*Get whether interrupt 2 is routed to the INT2 pin.
@@ -806,7 +809,7 @@ void LSM303DLHC::setAccelINT2Interrupt2Enabled(bool enabled){
 @see LSM303DLHC_I2_INT2_BIT
 */
 bool LSM303DLHC::getAccelINT2Interrupt2Enabled(){
-  I2Cdev::readBit(devAddrA, LSM303DLHC_RA_CTRL_REG6_A, LSM303DLHC_I2_INT2_BIT, buffer);
+  I2Cdev::readBit(devHandleA, LSM303DLHC_RA_CTRL_REG6_A, LSM303DLHC_I2_INT2_BIT, buffer);
   return buffer[0];
 }
 
@@ -816,7 +819,7 @@ bool LSM303DLHC::getAccelINT2Interrupt2Enabled(){
 @see LSM303DLHC_BOOT_I1_BIT
 */
 void LSM303DLHC::setAccelRebootMemoryContentINT2Enabled(bool enabled){
-  I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_CTRL_REG6_A, LSM303DLHC_BOOT_I1_BIT, enabled);
+  I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_CTRL_REG6_A, LSM303DLHC_BOOT_I1_BIT, enabled);
 } 
 
 /*Get whether memory content reboot is enabled via INT2 pin
@@ -825,7 +828,7 @@ void LSM303DLHC::setAccelRebootMemoryContentINT2Enabled(bool enabled){
 @see LSM303DLHC_BOOT_I1_BIT
 */
 bool LSM303DLHC::getAccelRebootMemoryContentINT2Enabled(){
-  I2Cdev::readBit(devAddrA, LSM303DLHC_RA_CTRL_REG6_A, LSM303DLHC_BOOT_I1_BIT, buffer);
+  I2Cdev::readBit(devHandleA, LSM303DLHC_RA_CTRL_REG6_A, LSM303DLHC_BOOT_I1_BIT, buffer);
   return buffer[0];
 }
 
@@ -841,7 +844,7 @@ bool LSM303DLHC::getAccelRebootMemoryContentINT2Enabled(){
 @see LSM303DLHC_H_ACTIVE_BIT
 */
 void LSM303DLHC::setAccelInterruptActiveLowEnabled(bool enabled){
-  I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_CTRL_REG6_A, LSM303DLHC_H_ACTIVE_BIT, enabled);
+  I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_CTRL_REG6_A, LSM303DLHC_H_ACTIVE_BIT, enabled);
 }
 
 /*Get whether active low interrupts are enabled.
@@ -850,7 +853,7 @@ void LSM303DLHC::setAccelInterruptActiveLowEnabled(bool enabled){
 @see LSM303DLHC_H_ACTIVE_BIT
 */
 bool LSM303DLHC::getAccelInterruptActiveLowEnabled(){
-  I2Cdev::readBit(devAddrA, LSM303DLHC_RA_CTRL_REG6_A, LSM303DLHC_H_ACTIVE_BIT, buffer);
+  I2Cdev::readBit(devHandleA, LSM303DLHC_RA_CTRL_REG6_A, LSM303DLHC_H_ACTIVE_BIT, buffer);
   return buffer[0];
 }
 
@@ -861,7 +864,7 @@ bool LSM303DLHC::getAccelInterruptActiveLowEnabled(){
  * @see LSM303DLHC_RA_REFERENCE_A
  */
 void LSM303DLHC::setAccelInterruptReference(uint8_t reference) {
-  I2Cdev::writeByte(devAddrA, LSM303DLHC_RA_REFERENCE_A, reference);
+  I2Cdev::writeByte(devHandleA, LSM303DLHC_RA_REFERENCE_A, reference);
 }
 
 /** Get the 8-bit reference value for interrupt generation
@@ -869,7 +872,7 @@ void LSM303DLHC::setAccelInterruptReference(uint8_t reference) {
  * @see LSM303DLHC_RA_REFERENCE
  */
 uint8_t LSM303DLHC::getAccelInterruptReference() {
-  I2Cdev::readByte(devAddrA, LSM303DLHC_RA_REFERENCE_A, buffer);
+  I2Cdev::readByte(devHandleA, LSM303DLHC_RA_REFERENCE_A, buffer);
   return buffer[0];
 }
 
@@ -882,7 +885,7 @@ uint8_t LSM303DLHC::getAccelInterruptReference() {
  * @see LSM303DLHC_ZYXOR_BIT
  */
 bool LSM303DLHC::getAccelXYZOverrun() {
-  I2Cdev::readBit(devAddrA, LSM303DLHC_RA_STATUS_REG_A, LSM303DLHC_ZYXOR_BIT, 
+  I2Cdev::readBit(devHandleA, LSM303DLHC_RA_STATUS_REG_A, LSM303DLHC_ZYXOR_BIT, 
     buffer);
   return buffer[0];
 }
@@ -894,7 +897,7 @@ bool LSM303DLHC::getAccelXYZOverrun() {
  * @see LSM303DLHC_ZOR_BIT
  */
 bool LSM303DLHC::getAccelZOverrun() {
-  I2Cdev::readBit(devAddrA, LSM303DLHC_RA_STATUS_REG_A, LSM303DLHC_ZOR_BIT, 
+  I2Cdev::readBit(devHandleA, LSM303DLHC_RA_STATUS_REG_A, LSM303DLHC_ZOR_BIT, 
     buffer);
   return buffer[0];
 }
@@ -906,7 +909,7 @@ bool LSM303DLHC::getAccelZOverrun() {
  * @see LSM303DLHC_YOR_BIT
  */
 bool LSM303DLHC::getAccelYOverrun() {
-  I2Cdev::readBit(devAddrA, LSM303DLHC_RA_STATUS_REG_A, LSM303DLHC_YOR_BIT, 
+  I2Cdev::readBit(devHandleA, LSM303DLHC_RA_STATUS_REG_A, LSM303DLHC_YOR_BIT, 
     buffer);
   return buffer[0];
 }
@@ -918,7 +921,7 @@ bool LSM303DLHC::getAccelYOverrun() {
  * @see LSM303DLHC_XOR_BIT
  */
 bool LSM303DLHC::getAccelXOverrun() {
-  I2Cdev::readBit(devAddrA, LSM303DLHC_RA_STATUS_REG_A, LSM303DLHC_XOR_BIT, 
+  I2Cdev::readBit(devHandleA, LSM303DLHC_RA_STATUS_REG_A, LSM303DLHC_XOR_BIT, 
     buffer);
   return buffer[0];
 }
@@ -929,7 +932,7 @@ bool LSM303DLHC::getAccelXOverrun() {
  * @see LSM303DLHC_ZYXDA_BIT
  */
 bool LSM303DLHC::getAccelXYZDataAvailable() {
-  I2Cdev::readBit(devAddrA, LSM303DLHC_RA_STATUS_REG_A, LSM303DLHC_ZYXDA_BIT, 
+  I2Cdev::readBit(devHandleA, LSM303DLHC_RA_STATUS_REG_A, LSM303DLHC_ZYXDA_BIT, 
     buffer);
   return buffer[0];
 }
@@ -940,7 +943,7 @@ bool LSM303DLHC::getAccelXYZDataAvailable() {
  * @see LSM303DLHC_ZDA_BIT
  */
 bool LSM303DLHC::getAccelZDataAvailable() {
-  I2Cdev::readBit(devAddrA, LSM303DLHC_RA_STATUS_REG_A, LSM303DLHC_ZDA_BIT, 
+  I2Cdev::readBit(devHandleA, LSM303DLHC_RA_STATUS_REG_A, LSM303DLHC_ZDA_BIT, 
     buffer);
   return buffer[0];
 }
@@ -951,7 +954,7 @@ bool LSM303DLHC::getAccelZDataAvailable() {
  * @see LSM303DLHC_YDA_BIT
  */
 bool LSM303DLHC::getAccelYDataAvailable() {
-  I2Cdev::readBit(devAddrA, LSM303DLHC_RA_STATUS_REG_A, LSM303DLHC_YDA_BIT, 
+  I2Cdev::readBit(devHandleA, LSM303DLHC_RA_STATUS_REG_A, LSM303DLHC_YDA_BIT, 
     buffer);
   return buffer[0];
 }
@@ -962,7 +965,7 @@ bool LSM303DLHC::getAccelYDataAvailable() {
  * @see LSM303DLHC_XDA_BIT
  */
 bool LSM303DLHC::getAccelXDataAvailable() {
-  I2Cdev::readBit(devAddrA, LSM303DLHC_RA_STATUS_REG_A, LSM303DLHC_XDA_BIT, 
+  I2Cdev::readBit(devHandleA, LSM303DLHC_RA_STATUS_REG_A, LSM303DLHC_XDA_BIT, 
     buffer);
   return buffer[0];
 }
@@ -982,7 +985,7 @@ bool LSM303DLHC::getAccelXDataAvailable() {
  * @param z 16-bit integer container for the Z-axis acceleration
  */
 void LSM303DLHC::getAcceleration(int16_t* x, int16_t* y, int16_t* z) {
-  I2Cdev::readBytes(devAddrA, LSM303DLHC_RA_OUT_X_L_A | 0x80, 6, buffer);
+  I2Cdev::readBytes(devHandleA, LSM303DLHC_RA_OUT_X_L_A | 0x80, 6, buffer);
   if (endianMode == LSM303DLHC_LITTLE_ENDIAN) {
     *x = (((int16_t)buffer[1]) << 8) | buffer[0];
     *y = (((int16_t)buffer[3]) << 8) | buffer[2];
@@ -1000,7 +1003,7 @@ void LSM303DLHC::getAcceleration(int16_t* x, int16_t* y, int16_t* z) {
  * @see LSM303DLHC_RA_OUT_X_H_A
  */
 int16_t LSM303DLHC::getAccelerationX() {
-  I2Cdev::readBytes(devAddrA, LSM303DLHC_RA_OUT_X_L_A | 0x80, 2, buffer);
+  I2Cdev::readBytes(devHandleA, LSM303DLHC_RA_OUT_X_L_A | 0x80, 2, buffer);
   if (endianMode == LSM303DLHC_LITTLE_ENDIAN) {
     return (((int16_t)buffer[1]) << 8) | buffer[0];
   } else {
@@ -1014,7 +1017,7 @@ int16_t LSM303DLHC::getAccelerationX() {
  * @see LSM303DLHC_RA_OUT_Y_H_A
  */
 int16_t LSM303DLHC::getAccelerationY() {
-  I2Cdev::readBytes(devAddrA, LSM303DLHC_RA_OUT_Y_L_A | 0x80, 2, buffer);
+  I2Cdev::readBytes(devHandleA, LSM303DLHC_RA_OUT_Y_L_A | 0x80, 2, buffer);
   if (endianMode == LSM303DLHC_LITTLE_ENDIAN) {
     return (((int16_t)buffer[1]) << 8) | buffer[0];
   } else {
@@ -1028,7 +1031,7 @@ int16_t LSM303DLHC::getAccelerationY() {
  * @see LSM303DLHC_RA_OUT_Z_H_A
  */
 int16_t LSM303DLHC::getAccelerationZ() {
-  I2Cdev::readBytes(devAddrA, LSM303DLHC_RA_OUT_Z_L_A | 0x80, 2, buffer);
+  I2Cdev::readBytes(devHandleA, LSM303DLHC_RA_OUT_Z_L_A | 0x80, 2, buffer);
   if (endianMode == LSM303DLHC_LITTLE_ENDIAN) {
     return (((int16_t)buffer[1]) << 8) | buffer[0];
   } else {
@@ -1049,7 +1052,7 @@ int16_t LSM303DLHC::getAccelerationZ() {
  * @see LSM303DLHC_FM_TRIGGER
  */
 void LSM303DLHC::setAccelFIFOMode(uint8_t mode) {
-  I2Cdev::writeBits(devAddrA, LSM303DLHC_RA_FIFO_CTRL_REG_A, LSM303DLHC_FM_BIT, 
+  I2Cdev::writeBits(devHandleA, LSM303DLHC_RA_FIFO_CTRL_REG_A, LSM303DLHC_FM_BIT, 
     LSM303DLHC_FM_LENGTH, mode);
 }
 
@@ -1064,7 +1067,7 @@ void LSM303DLHC::setAccelFIFOMode(uint8_t mode) {
  * @see LSM303DLHC_FM_TRIGGER
  */
 uint8_t LSM303DLHC::getAccelFIFOMode() {
-  I2Cdev::readBits(devAddrA, LSM303DLHC_RA_FIFO_CTRL_REG_A, 
+  I2Cdev::readBits(devHandleA, LSM303DLHC_RA_FIFO_CTRL_REG_A, 
     LSM303DLHC_FM_BIT, LSM303DLHC_FM_LENGTH, buffer);
   return buffer[0];
 }
@@ -1077,7 +1080,7 @@ uint8_t LSM303DLHC::getAccelFIFOMode() {
 @see LSM303DLHC_TR_INT2
 */
 void LSM303DLHC::setAccelFIFOTriggerINT(bool trigger){
-  I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_FIFO_CTRL_REG_A,
+  I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_FIFO_CTRL_REG_A,
     LSM303DLHC_TR_BIT, trigger);
 }
 
@@ -1089,7 +1092,7 @@ void LSM303DLHC::setAccelFIFOTriggerINT(bool trigger){
 @see LSM303DLHC_TR_INT2
 */
 bool LSM303DLHC::getAccelFIFOTriggerINT(){
-  I2Cdev::readBit(devAddrA, LSM303DLHC_RA_FIFO_CTRL_REG_A,
+  I2Cdev::readBit(devHandleA, LSM303DLHC_RA_FIFO_CTRL_REG_A,
     LSM303DLHC_TR_BIT, buffer);
   return buffer[0];
 }
@@ -1101,7 +1104,7 @@ bool LSM303DLHC::getAccelFIFOTriggerINT(){
  * @see LSM303DLHC_FTH_LENGTH
  */
 void LSM303DLHC::setAccelFIFOThreshold(uint8_t wtm) {
-    I2Cdev::writeBits(devAddrA, LSM303DLHC_RA_FIFO_CTRL_REG_A, LSM303DLHC_FTH_BIT, 
+    I2Cdev::writeBits(devHandleA, LSM303DLHC_RA_FIFO_CTRL_REG_A, LSM303DLHC_FTH_BIT, 
         LSM303DLHC_FTH_LENGTH, wtm);
 }
 
@@ -1112,7 +1115,7 @@ void LSM303DLHC::setAccelFIFOThreshold(uint8_t wtm) {
  * @see LSM303DLHC_FTH_LENGTH
  */
 uint8_t LSM303DLHC::getAccelFIFOThreshold() {
-    I2Cdev::readBits(devAddrA, LSM303DLHC_RA_FIFO_CTRL_REG_A, LSM303DLHC_FTH_BIT,
+    I2Cdev::readBits(devHandleA, LSM303DLHC_RA_FIFO_CTRL_REG_A, LSM303DLHC_FTH_BIT,
         LSM303DLHC_FTH_LENGTH, buffer);
     return buffer[0];
 }
@@ -1128,7 +1131,7 @@ uint8_t LSM303DLHC::getAccelFIFOThreshold() {
  * @see LSM303DLHC_WTM_BIT
  */
 bool LSM303DLHC::getAccelFIFOAtWatermark() {
-    I2Cdev::readBit(devAddrA, LSM303DLHC_RA_FIFO_SRC_REG_A, LSM303DLHC_WTM_BIT, 
+    I2Cdev::readBit(devHandleA, LSM303DLHC_RA_FIFO_SRC_REG_A, LSM303DLHC_WTM_BIT, 
         buffer);
     return buffer[0];
 }
@@ -1139,7 +1142,7 @@ bool LSM303DLHC::getAccelFIFOAtWatermark() {
  * @see LSM303DLHC_OVRN_FIFO_BIT
  */
 bool LSM303DLHC::getAccelFIFOOverrun() {
-    I2Cdev::readBit(devAddrA, LSM303DLHC_RA_FIFO_SRC_REG_A, 
+    I2Cdev::readBit(devHandleA, LSM303DLHC_RA_FIFO_SRC_REG_A, 
         LSM303DLHC_OVRN_FIFO_BIT, buffer);
     return buffer[0];
 }
@@ -1150,7 +1153,7 @@ bool LSM303DLHC::getAccelFIFOOverrun() {
  * @see LSM303DLHC_EMPTY_BIT
  */
 bool LSM303DLHC::getAccelFIFOEmpty() {
-    I2Cdev::readBit(devAddrA, LSM303DLHC_RA_FIFO_SRC_REG_A,
+    I2Cdev::readBit(devHandleA, LSM303DLHC_RA_FIFO_SRC_REG_A,
         LSM303DLHC_EMPTY_BIT, buffer);
     return buffer[0];
 }
@@ -1162,7 +1165,7 @@ bool LSM303DLHC::getAccelFIFOEmpty() {
  * @see LSM303DLHC_FSS_LENGTH
  */ 
 uint8_t LSM303DLHC::getAccelFIFOStoredSamples() {
-    I2Cdev::readBits(devAddrA, LSM303DLHC_RA_FIFO_SRC_REG_A, 
+    I2Cdev::readBits(devHandleA, LSM303DLHC_RA_FIFO_SRC_REG_A, 
         LSM303DLHC_FSS_BIT, LSM303DLHC_FSS_LENGTH, buffer);
     return buffer[0];
 }
@@ -1178,7 +1181,7 @@ uint8_t LSM303DLHC::getAccelFIFOStoredSamples() {
  * @see LSM303DLHC_INT1_AND
  */
 void LSM303DLHC::setAccelInterrupt1Combination(bool combination) {
-    I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_INT1_CFG_A, LSM303DLHC_INT1_AOI_BIT,
+    I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_INT1_CFG_A, LSM303DLHC_INT1_AOI_BIT,
         combination);
 }
 
@@ -1191,7 +1194,7 @@ void LSM303DLHC::setAccelInterrupt1Combination(bool combination) {
  * @see LSM303DLHC_INT1_AND
  */
 bool LSM303DLHC::getAccelInterrupt1Combination() {
-    I2Cdev::readBit(devAddrA, LSM303DLHC_RA_INT1_CFG_A, LSM303DLHC_INT1_AOI_BIT,
+    I2Cdev::readBit(devHandleA, LSM303DLHC_RA_INT1_CFG_A, LSM303DLHC_INT1_AOI_BIT,
         buffer);
     return buffer[0];
 }
@@ -1202,7 +1205,7 @@ bool LSM303DLHC::getAccelInterrupt1Combination() {
 @see LSM303DLHC_INT1_6D_BIT
 */
 void LSM303DLHC::setAccelInterrupt16DEnabled(bool enabled){
-  I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_INT1_CFG_A, LSM303DLHC_INT1_6D_BIT, enabled);
+  I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_INT1_CFG_A, LSM303DLHC_INT1_6D_BIT, enabled);
 }
 
 /*Get enable status of 6D dectection interrupt 1.  See datasheet for how 4D detection is affected.
@@ -1211,7 +1214,7 @@ void LSM303DLHC::setAccelInterrupt16DEnabled(bool enabled){
 @see LSM303DLHC_INT1_6D_BIT
 */
 bool LSM303DLHC::getAccelInterrupt16DEnabled(){
-  I2Cdev::readBit(devAddrA, LSM303DLHC_RA_INT1_CFG_A, LSM303DLHC_INT1_6D_BIT, buffer);
+  I2Cdev::readBit(devHandleA, LSM303DLHC_RA_INT1_CFG_A, LSM303DLHC_INT1_6D_BIT, buffer);
   return buffer[0];
 }
 
@@ -1221,7 +1224,7 @@ bool LSM303DLHC::getAccelInterrupt16DEnabled(){
  * @see LSM303DLHC_ZHIE_ZUPE_BIT
  */
 void LSM303DLHC::setAccelZHighUpInterrupt1Enabled(bool enabled) {
-    I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_INT1_CFG_A, LSM303DLHC_INT1_ZHIE_ZUPE_BIT, enabled);
+    I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_INT1_CFG_A, LSM303DLHC_INT1_ZHIE_ZUPE_BIT, enabled);
 }
 
 /** Get whether the interrupt 1 for Z high/up is enabled
@@ -1230,7 +1233,7 @@ void LSM303DLHC::setAccelZHighUpInterrupt1Enabled(bool enabled) {
  * @see LSM303DLHC_INT1_ZHIE_ZUPE_BIT
  */
 bool LSM303DLHC::getAccelZHighUpInterrupt1Enabled() {
-    I2Cdev::readBit(devAddrA, LSM303DLHC_RA_INT1_CFG_A, LSM303DLHC_INT1_ZHIE_ZUPE_BIT, 
+    I2Cdev::readBit(devHandleA, LSM303DLHC_RA_INT1_CFG_A, LSM303DLHC_INT1_ZHIE_ZUPE_BIT, 
         buffer);
     return buffer[0];
 }
@@ -1241,7 +1244,7 @@ bool LSM303DLHC::getAccelZHighUpInterrupt1Enabled() {
  * @see LSM303DLHC_INT1_ZLIE_ZDOWNE_BIT
  */
 void LSM303DLHC::setAccelZLowDownInterrupt1Enabled(bool enabled) {
-    I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_INT1_CFG_A, LSM303DLHC_INT1_ZLIE_ZDOWNE_BIT, enabled);
+    I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_INT1_CFG_A, LSM303DLHC_INT1_ZLIE_ZDOWNE_BIT, enabled);
 }
 
 /** Get whether the interrupt 1 for Z low/down is enabled
@@ -1250,7 +1253,7 @@ void LSM303DLHC::setAccelZLowDownInterrupt1Enabled(bool enabled) {
  * @see LSM303DLHC_INT1_ZLIE_ZDOWNE_BIT
  */
 bool LSM303DLHC::getAccelZLowDownInterrupt1Enabled() {
-    I2Cdev::readBit(devAddrA, LSM303DLHC_RA_INT1_CFG_A, LSM303DLHC_INT1_ZLIE_ZDOWNE_BIT, 
+    I2Cdev::readBit(devHandleA, LSM303DLHC_RA_INT1_CFG_A, LSM303DLHC_INT1_ZLIE_ZDOWNE_BIT, 
         buffer);
     return buffer[0];
 }
@@ -1261,7 +1264,7 @@ bool LSM303DLHC::getAccelZLowDownInterrupt1Enabled() {
  * @see LSM303DLHC_INT1_YHIE_YUPE_BIT
  */
 void LSM303DLHC::setAccelYHighUpInterrupt1Enabled(bool enabled) {
-    I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_INT1_CFG_A, LSM303DLHC_INT1_YHIE_YUPE_BIT, enabled);
+    I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_INT1_CFG_A, LSM303DLHC_INT1_YHIE_YUPE_BIT, enabled);
 }
 
 /** Get whether the interrupt 1 for Y high/up is enabled
@@ -1270,7 +1273,7 @@ void LSM303DLHC::setAccelYHighUpInterrupt1Enabled(bool enabled) {
  * @see LSM303DLHC_INT1_YHIE_YUPE_BIT
  */
 bool LSM303DLHC::getAccelYHighUpInterrupt1Enabled() {
-    I2Cdev::readBit(devAddrA, LSM303DLHC_RA_INT1_CFG_A, LSM303DLHC_INT1_YHIE_YUPE_BIT, 
+    I2Cdev::readBit(devHandleA, LSM303DLHC_RA_INT1_CFG_A, LSM303DLHC_INT1_YHIE_YUPE_BIT, 
         buffer);
     return buffer[0];
 }
@@ -1281,7 +1284,7 @@ bool LSM303DLHC::getAccelYHighUpInterrupt1Enabled() {
  * @see LSM303DLHC_INT1_YLIE_YDOWNE_BIT
  */
 void LSM303DLHC::setAccelYLowDownInterrupt1Enabled(bool enabled) {
-    I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_INT1_CFG_A, LSM303DLHC_INT1_YLIE_YDOWNE_BIT, enabled);
+    I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_INT1_CFG_A, LSM303DLHC_INT1_YLIE_YDOWNE_BIT, enabled);
 }
 
 /** Get whether the interrupt 1 for Y low/down is enabled
@@ -1290,7 +1293,7 @@ void LSM303DLHC::setAccelYLowDownInterrupt1Enabled(bool enabled) {
  * @see LSM303DLHC_INT1_YLIE_YDOWNE_BIT
  */
 bool LSM303DLHC::getAccelYLowDownInterrupt1Enabled() {
-    I2Cdev::readBit(devAddrA, LSM303DLHC_RA_INT1_CFG_A, LSM303DLHC_INT1_YLIE_YDOWNE_BIT, 
+    I2Cdev::readBit(devHandleA, LSM303DLHC_RA_INT1_CFG_A, LSM303DLHC_INT1_YLIE_YDOWNE_BIT, 
         buffer);
     return buffer[0];
 }
@@ -1301,7 +1304,7 @@ bool LSM303DLHC::getAccelYLowDownInterrupt1Enabled() {
  * @see LSM303DLHC_INT1_XHIE_XUPE_BIT
  */
 void LSM303DLHC::setAccelXHighUpInterrupt1Enabled(bool enabled) {
-    I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_INT1_CFG_A, LSM303DLHC_INT1_XHIE_XUPE_BIT, enabled);
+    I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_INT1_CFG_A, LSM303DLHC_INT1_XHIE_XUPE_BIT, enabled);
 }
 
 /** Get whether the interrupt 1 for X high/up is enabled
@@ -1310,7 +1313,7 @@ void LSM303DLHC::setAccelXHighUpInterrupt1Enabled(bool enabled) {
  * @see LSM303DLHC_INT1_XHIE_XUPE_BIT
  */
 bool LSM303DLHC::getAccelXHighUpInterrupt1Enabled() {
-    I2Cdev::readBit(devAddrA, LSM303DLHC_RA_INT1_CFG_A, LSM303DLHC_INT1_XHIE_XUPE_BIT, 
+    I2Cdev::readBit(devHandleA, LSM303DLHC_RA_INT1_CFG_A, LSM303DLHC_INT1_XHIE_XUPE_BIT, 
         buffer);
     return buffer[0];
 }
@@ -1321,7 +1324,7 @@ bool LSM303DLHC::getAccelXHighUpInterrupt1Enabled() {
  * @see LSM303DLHC_INT1_XLIE_XDOWNE_BIT
  */
 void LSM303DLHC::setAccelXLowDownInterrupt1Enabled(bool enabled) {
-    I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_INT1_CFG_A, LSM303DLHC_INT1_XLIE_XDOWNE_BIT, enabled);
+    I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_INT1_CFG_A, LSM303DLHC_INT1_XLIE_XDOWNE_BIT, enabled);
 }
 
 /** Get whether the interrupt 1 for X low/down is enabled
@@ -1330,7 +1333,7 @@ void LSM303DLHC::setAccelXLowDownInterrupt1Enabled(bool enabled) {
  * @see LSM303DLHC_INT1_XLIE_XDOWNE_BIT
  */
 bool LSM303DLHC::getAccelXLowDownInterrupt1Enabled() {
-    I2Cdev::readBit(devAddrA, LSM303DLHC_RA_INT1_CFG_A, LSM303DLHC_INT1_XLIE_XDOWNE_BIT, 
+    I2Cdev::readBit(devHandleA, LSM303DLHC_RA_INT1_CFG_A, LSM303DLHC_INT1_XLIE_XDOWNE_BIT, 
         buffer);
     return buffer[0];
 }
@@ -1350,7 +1353,7 @@ Reading this register will clear any interrupts that were lateched.
 @see LSM303DLHC_INT1_XL_BIT
 */
 uint8_t LSM303DLHC::getAccelInterrupt1Source() {
-    I2Cdev::readByte(devAddrA, LSM303DLHC_RA_INT1_SRC_A, buffer);
+    I2Cdev::readByte(devHandleA, LSM303DLHC_RA_INT1_SRC_A, buffer);
     return buffer[0];
 }
 
@@ -1361,7 +1364,7 @@ uint8_t LSM303DLHC::getAccelInterrupt1Source() {
  * @see LSM303DLHC_RA_INT1_THS_A
  */
 void LSM303DLHC::setAccelInterrupt1Threshold(uint8_t value){
-  I2Cdev::writeByte(devAddrA, LSM303DLHC_RA_INT1_THS_A, value);
+  I2Cdev::writeByte(devHandleA, LSM303DLHC_RA_INT1_THS_A, value);
 }
 
 /** Retrieve the threshold interrupt 1
@@ -1369,7 +1372,7 @@ void LSM303DLHC::setAccelInterrupt1Threshold(uint8_t value){
  * @see LSM303DLHC_RA_INT1_THS_A
  */
 uint8_t LSM303DLHC::getAccelInterupt1Threshold(){
-  I2Cdev::readByte(devAddrA, LSM303DLHC_RA_INT1_THS_A, buffer);
+  I2Cdev::readByte(devHandleA, LSM303DLHC_RA_INT1_THS_A, buffer);
   return buffer[0];
 }
 
@@ -1384,7 +1387,7 @@ uint8_t LSM303DLHC::getAccelInterupt1Threshold(){
  * @see LSM303DLHC_INT1_DURATION_LENGTH
  */
 void LSM303DLHC::setAccelInterrupt1Duration(uint8_t duration) {
-  I2Cdev::writeBits(devAddrA, LSM303DLHC_RA_INT1_DURATION_A, LSM303DLHC_INT1_DURATION_BIT,
+  I2Cdev::writeBits(devHandleA, LSM303DLHC_RA_INT1_DURATION_A, LSM303DLHC_INT1_DURATION_BIT,
     LSM303DLHC_INT1_DURATION_LENGTH, duration);
 }
 
@@ -1395,7 +1398,7 @@ void LSM303DLHC::setAccelInterrupt1Duration(uint8_t duration) {
  * @see LSM303DLHC_INT1_DURATION_LENGTH
  */
 uint8_t LSM303DLHC::getAccelInterrupt1Duration() {
-  I2Cdev::readBits(devAddrA, LSM303DLHC_RA_INT1_DURATION_A, 
+  I2Cdev::readBits(devHandleA, LSM303DLHC_RA_INT1_DURATION_A, 
     LSM303DLHC_INT1_DURATION_BIT, LSM303DLHC_INT1_DURATION_LENGTH, buffer);
   return buffer[0];
 }
@@ -1411,7 +1414,7 @@ uint8_t LSM303DLHC::getAccelInterrupt1Duration() {
  * @see LSM303DLHC_INT1_AND
  */
 void LSM303DLHC::setAccelInterrupt2Combination(bool combination) {
-    I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_INT2_CFG_A, LSM303DLHC_INT2_AOI_BIT,
+    I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_INT2_CFG_A, LSM303DLHC_INT2_AOI_BIT,
         combination);
 }
 
@@ -1424,7 +1427,7 @@ void LSM303DLHC::setAccelInterrupt2Combination(bool combination) {
  * @see LSM303DLHC_INT1_AND
  */
 bool LSM303DLHC::getAccelInterrupt2Combination() {
-    I2Cdev::readBit(devAddrA, LSM303DLHC_RA_INT2_CFG_A, LSM303DLHC_INT2_AOI_BIT,
+    I2Cdev::readBit(devHandleA, LSM303DLHC_RA_INT2_CFG_A, LSM303DLHC_INT2_AOI_BIT,
         buffer);
     return buffer[0];
 }
@@ -1435,7 +1438,7 @@ bool LSM303DLHC::getAccelInterrupt2Combination() {
 @see LSM303DLHC_INT2_6D_BIT
 */
 void LSM303DLHC::setAccelInterrupt26DEnabled(bool enabled){
-  I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_INT2_CFG_A, LSM303DLHC_INT2_6D_BIT, enabled);
+  I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_INT2_CFG_A, LSM303DLHC_INT2_6D_BIT, enabled);
 }
 
 /*Get enable status of 6D dectection interrupt 2.  See datasheet for how 4D detection is affected.
@@ -1444,7 +1447,7 @@ void LSM303DLHC::setAccelInterrupt26DEnabled(bool enabled){
 @see LSM303DLHC_INT2_6D_BIT
 */
 bool LSM303DLHC::getAccelInterrupt26DEnabled(){
-  I2Cdev::readBit(devAddrA, LSM303DLHC_RA_INT2_CFG_A, LSM303DLHC_INT2_6D_BIT, buffer);
+  I2Cdev::readBit(devHandleA, LSM303DLHC_RA_INT2_CFG_A, LSM303DLHC_INT2_6D_BIT, buffer);
   return buffer[0];
 }
 
@@ -1454,7 +1457,7 @@ bool LSM303DLHC::getAccelInterrupt26DEnabled(){
  * @see LSM303DLHC_INT2_ZHIE_BIT
  */
 void LSM303DLHC::setAccelZHighInterrupt2Enabled(bool enabled) {
-    I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_INT2_CFG_A, LSM303DLHC_INT2_ZHIE_BIT, enabled);
+    I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_INT2_CFG_A, LSM303DLHC_INT2_ZHIE_BIT, enabled);
 }
 
 /** Get whether the interrupt 2 for Z high is enabled
@@ -1463,7 +1466,7 @@ void LSM303DLHC::setAccelZHighInterrupt2Enabled(bool enabled) {
  * @see LSM303DLHC_INT2_ZHIE_BIT
  */
 bool LSM303DLHC::getAccelZHighInterrupt2Enabled() {
-    I2Cdev::readBit(devAddrA, LSM303DLHC_RA_INT2_CFG_A, LSM303DLHC_INT2_ZHIE_BIT, 
+    I2Cdev::readBit(devHandleA, LSM303DLHC_RA_INT2_CFG_A, LSM303DLHC_INT2_ZHIE_BIT, 
         buffer);
     return buffer[0];
 }
@@ -1474,7 +1477,7 @@ bool LSM303DLHC::getAccelZHighInterrupt2Enabled() {
  * @see LSM303DLHC_INT2_ZLIE_BIT
  */
 void LSM303DLHC::setAccelZLowInterrupt2Enabled(bool enabled) {
-    I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_INT2_CFG_A, LSM303DLHC_INT2_ZLIE_BIT, enabled);
+    I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_INT2_CFG_A, LSM303DLHC_INT2_ZLIE_BIT, enabled);
 }
 
 /** Get whether the interrupt 2 for Z low is enabled
@@ -1483,7 +1486,7 @@ void LSM303DLHC::setAccelZLowInterrupt2Enabled(bool enabled) {
  * @see LSM303DLHC_INT2_ZLIE_BIT
  */
 bool LSM303DLHC::getAccelZLowInterrupt2Enabled() {
-    I2Cdev::readBit(devAddrA, LSM303DLHC_RA_INT2_CFG_A, LSM303DLHC_INT2_ZLIE_BIT, 
+    I2Cdev::readBit(devHandleA, LSM303DLHC_RA_INT2_CFG_A, LSM303DLHC_INT2_ZLIE_BIT, 
         buffer);
     return buffer[0];
 }
@@ -1494,7 +1497,7 @@ bool LSM303DLHC::getAccelZLowInterrupt2Enabled() {
  * @see LSM303DLHC_INT2_YHIE_BIT
  */
 void LSM303DLHC::setAccelYHighInterrupt2Enabled(bool enabled) {
-    I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_INT2_CFG_A, LSM303DLHC_INT2_YHIE_BIT, enabled);
+    I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_INT2_CFG_A, LSM303DLHC_INT2_YHIE_BIT, enabled);
 }
 
 /** Get whether the interrupt 2 for Y high is enabled
@@ -1503,7 +1506,7 @@ void LSM303DLHC::setAccelYHighInterrupt2Enabled(bool enabled) {
  * @see LSM303DLHC_INT2_YHIE_BIT
  */
 bool LSM303DLHC::getAccelYHighInterrupt2Enabled() {
-    I2Cdev::readBit(devAddrA, LSM303DLHC_RA_INT2_CFG_A, LSM303DLHC_INT2_YHIE_BIT, 
+    I2Cdev::readBit(devHandleA, LSM303DLHC_RA_INT2_CFG_A, LSM303DLHC_INT2_YHIE_BIT, 
         buffer);
     return buffer[0];
 }
@@ -1514,7 +1517,7 @@ bool LSM303DLHC::getAccelYHighInterrupt2Enabled() {
  * @see LSM303DLHC_INT2_YLIE_BIT
  */
 void LSM303DLHC::setAccelYLowInterrupt2Enabled(bool enabled) {
-    I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_INT2_CFG_A, LSM303DLHC_INT2_YLIE_BIT, enabled);
+    I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_INT2_CFG_A, LSM303DLHC_INT2_YLIE_BIT, enabled);
 }
 
 /** Get whether the interrupt 2 for Y low is enabled
@@ -1523,7 +1526,7 @@ void LSM303DLHC::setAccelYLowInterrupt2Enabled(bool enabled) {
  * @see LSM303DLHC_INT2_YLIE_BIT
  */
 bool LSM303DLHC::getAccelYLowInterrupt2Enabled() {
-    I2Cdev::readBit(devAddrA, LSM303DLHC_RA_INT2_CFG_A, LSM303DLHC_INT2_YLIE_BIT, 
+    I2Cdev::readBit(devHandleA, LSM303DLHC_RA_INT2_CFG_A, LSM303DLHC_INT2_YLIE_BIT, 
         buffer);
     return buffer[0];
 }
@@ -1534,7 +1537,7 @@ bool LSM303DLHC::getAccelYLowInterrupt2Enabled() {
  * @see LSM303DLHC_INT2_XHIE_BIT
  */
 void LSM303DLHC::setAccelXHighInterrupt2Enabled(bool enabled) {
-    I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_INT2_CFG_A, LSM303DLHC_INT2_XHIE_BIT, enabled);
+    I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_INT2_CFG_A, LSM303DLHC_INT2_XHIE_BIT, enabled);
 }
 
 /** Get whether the interrupt 2 for X high is enabled
@@ -1543,7 +1546,7 @@ void LSM303DLHC::setAccelXHighInterrupt2Enabled(bool enabled) {
  * @see LSM303DLHC_INT2_XHIE_BIT
  */
 bool LSM303DLHC::getAccelXHighInterrupt2Enabled() {
-    I2Cdev::readBit(devAddrA, LSM303DLHC_RA_INT2_CFG_A, LSM303DLHC_INT2_XHIE_BIT, 
+    I2Cdev::readBit(devHandleA, LSM303DLHC_RA_INT2_CFG_A, LSM303DLHC_INT2_XHIE_BIT, 
         buffer);
     return buffer[0];
 }
@@ -1554,7 +1557,7 @@ bool LSM303DLHC::getAccelXHighInterrupt2Enabled() {
  * @see LSM303DLHC_INT2_XLIE_BIT
  */
 void LSM303DLHC::setAccelXLowInterrupt2Enabled(bool enabled) {
-    I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_INT2_CFG_A, LSM303DLHC_INT2_XLIE_BIT, enabled);
+    I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_INT2_CFG_A, LSM303DLHC_INT2_XLIE_BIT, enabled);
 }
 
 /** Get whether the interrupt 2 for X low is enabled
@@ -1563,7 +1566,7 @@ void LSM303DLHC::setAccelXLowInterrupt2Enabled(bool enabled) {
  * @see LSM303DLHC_INT2_XLIE_BIT
  */
 bool LSM303DLHC::getAccelXLowInterrupt2Enabled() {
-    I2Cdev::readBit(devAddrA, LSM303DLHC_RA_INT2_CFG_A, LSM303DLHC_INT2_XLIE_BIT, 
+    I2Cdev::readBit(devHandleA, LSM303DLHC_RA_INT2_CFG_A, LSM303DLHC_INT2_XLIE_BIT, 
         buffer);
     return buffer[0];
 }
@@ -1584,7 +1587,7 @@ Reading this register will clear any interrupts that were lateched.
 @see LSM303DLHC_INT2_XL_BIT
 */
 uint8_t LSM303DLHC::getAccelInterrupt2Source() {
-    I2Cdev::readByte(devAddrA, LSM303DLHC_RA_INT2_SRC_A, buffer);
+    I2Cdev::readByte(devHandleA, LSM303DLHC_RA_INT2_SRC_A, buffer);
     return buffer[0];
 }
 
@@ -1595,7 +1598,7 @@ uint8_t LSM303DLHC::getAccelInterrupt2Source() {
  * @see LSM303DLHC_RA_INT2_THS_A
  */
 void LSM303DLHC::setAccelInterrupt2Threshold(uint8_t value){
-  I2Cdev::writeByte(devAddrA, LSM303DLHC_RA_INT2_THS_A, value);
+  I2Cdev::writeByte(devHandleA, LSM303DLHC_RA_INT2_THS_A, value);
 }
 
 /** Retrieve the threshold interrupt 2
@@ -1603,7 +1606,7 @@ void LSM303DLHC::setAccelInterrupt2Threshold(uint8_t value){
  * @see LSM303DLHC_RA_INT2_THS_A
  */
 uint8_t LSM303DLHC::getAccelInterupt2Threshold(){
-  I2Cdev::readByte(devAddrA, LSM303DLHC_RA_INT2_THS_A, buffer);
+  I2Cdev::readByte(devHandleA, LSM303DLHC_RA_INT2_THS_A, buffer);
   return buffer[0];
 }
 
@@ -1618,7 +1621,7 @@ uint8_t LSM303DLHC::getAccelInterupt2Threshold(){
  * @see LSM303DLHC_INT2_DURATION_LENGTH
  */
 void LSM303DLHC::setAccelInterrupt2Duration(uint8_t duration) {
-  I2Cdev::writeBits(devAddrA, LSM303DLHC_RA_INT2_DURATION_A, LSM303DLHC_INT2_DURATION_BIT,
+  I2Cdev::writeBits(devHandleA, LSM303DLHC_RA_INT2_DURATION_A, LSM303DLHC_INT2_DURATION_BIT,
     LSM303DLHC_INT2_DURATION_LENGTH, duration);
 }
 
@@ -1629,7 +1632,7 @@ void LSM303DLHC::setAccelInterrupt2Duration(uint8_t duration) {
  * @see LSM303DLHC_INT2_DURATION_LENGTH
  */
 uint8_t LSM303DLHC::getAccelInterrupt2Duration() {
-  I2Cdev::readBits(devAddrA, LSM303DLHC_RA_INT2_DURATION_A, 
+  I2Cdev::readBits(devHandleA, LSM303DLHC_RA_INT2_DURATION_A, 
     LSM303DLHC_INT2_DURATION_BIT, LSM303DLHC_INT2_DURATION_LENGTH, buffer);
   return buffer[0];
 }
@@ -1642,7 +1645,7 @@ uint8_t LSM303DLHC::getAccelInterrupt2Duration() {
 @see LSM303DLHC_CLICK_ZD_BIT
 */
 void LSM303DLHC::setAccelZDoubleClickEnabled(bool enabled){
-  I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_CLICK_CFG_A, LSM303DLHC_CLICK_ZD_BIT, enabled);
+  I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_CLICK_CFG_A, LSM303DLHC_CLICK_ZD_BIT, enabled);
 }
 
 /*Get status of interrupt double click on the Z axis.
@@ -1651,7 +1654,7 @@ void LSM303DLHC::setAccelZDoubleClickEnabled(bool enabled){
 @see LSM303DLHC_CLICK_ZD_BIT
 */
 bool LSM303DLHC::getAccelZDoubleClickEnabled(){
-  I2Cdev::readBit(devAddrA, LSM303DLHC_RA_CLICK_CFG_A, LSM303DLHC_CLICK_ZD_BIT, buffer);
+  I2Cdev::readBit(devHandleA, LSM303DLHC_RA_CLICK_CFG_A, LSM303DLHC_CLICK_ZD_BIT, buffer);
   return buffer[0];
 }
 
@@ -1661,7 +1664,7 @@ bool LSM303DLHC::getAccelZDoubleClickEnabled(){
 @see LSM303DLHC_CLICK_ZS_BIT
 */
 void LSM303DLHC::setAccelZSingleClickEnabled(bool enabled){
-  I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_CLICK_CFG_A, LSM303DLHC_CLICK_ZS_BIT, enabled);
+  I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_CLICK_CFG_A, LSM303DLHC_CLICK_ZS_BIT, enabled);
 }
 
 /*Get status of interrupt single click on the Z axis.
@@ -1670,7 +1673,7 @@ void LSM303DLHC::setAccelZSingleClickEnabled(bool enabled){
 @see LSM303DLHC_CLICK_ZS_BIT
 */
 bool LSM303DLHC::getAccelZSingleClickEnabled(){
-  I2Cdev::readBit(devAddrA, LSM303DLHC_RA_CLICK_CFG_A, LSM303DLHC_CLICK_ZS_BIT, buffer);
+  I2Cdev::readBit(devHandleA, LSM303DLHC_RA_CLICK_CFG_A, LSM303DLHC_CLICK_ZS_BIT, buffer);
   return buffer[0];
 }
 
@@ -1680,7 +1683,7 @@ bool LSM303DLHC::getAccelZSingleClickEnabled(){
 @see LSM303DLHC_CLICK_YD_BIT
 */
 void LSM303DLHC::setAccelYDoubleClickEnabled(bool enabled){
-  I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_CLICK_CFG_A, LSM303DLHC_CLICK_YD_BIT, enabled);
+  I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_CLICK_CFG_A, LSM303DLHC_CLICK_YD_BIT, enabled);
 }
 
 /*Get status of interrupt double click on the Y axis.
@@ -1689,7 +1692,7 @@ void LSM303DLHC::setAccelYDoubleClickEnabled(bool enabled){
 @see LSM303DLHC_CLICK_YD_BIT
 */
 bool LSM303DLHC::getAccelYDoubleClickEnabled(){
-  I2Cdev::readBit(devAddrA, LSM303DLHC_RA_CLICK_CFG_A, LSM303DLHC_CLICK_YD_BIT, buffer);
+  I2Cdev::readBit(devHandleA, LSM303DLHC_RA_CLICK_CFG_A, LSM303DLHC_CLICK_YD_BIT, buffer);
   return buffer[0];
 }
 
@@ -1699,7 +1702,7 @@ bool LSM303DLHC::getAccelYDoubleClickEnabled(){
 @see LSM303DLHC_CLICK_YS_BIT
 */
 void LSM303DLHC::setAccelYSingleClickEnabled(bool enabled){
-  I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_CLICK_CFG_A, LSM303DLHC_CLICK_YS_BIT, enabled);
+  I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_CLICK_CFG_A, LSM303DLHC_CLICK_YS_BIT, enabled);
 }
 
 /*Get status of interrupt single click on the Y axis.
@@ -1708,7 +1711,7 @@ void LSM303DLHC::setAccelYSingleClickEnabled(bool enabled){
 @see LSM303DLHC_CLICK_YS_BIT
 */
 bool LSM303DLHC::getAccelYSingleClickEnabled(){
-  I2Cdev::readBit(devAddrA, LSM303DLHC_RA_CLICK_CFG_A, LSM303DLHC_CLICK_YS_BIT, buffer);
+  I2Cdev::readBit(devHandleA, LSM303DLHC_RA_CLICK_CFG_A, LSM303DLHC_CLICK_YS_BIT, buffer);
   return buffer[0];
 }
 
@@ -1718,7 +1721,7 @@ bool LSM303DLHC::getAccelYSingleClickEnabled(){
 @see LSM303DLHC_CLICK_XD_BIT
 */
 void LSM303DLHC::setAccelXDoubleClickEnabled(bool enabled){
-  I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_CLICK_CFG_A, LSM303DLHC_CLICK_XD_BIT, enabled);
+  I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_CLICK_CFG_A, LSM303DLHC_CLICK_XD_BIT, enabled);
 }
 
 /*Get status of interrupt double click on the X axis.
@@ -1727,7 +1730,7 @@ void LSM303DLHC::setAccelXDoubleClickEnabled(bool enabled){
 @see LSM303DLHC_CLICK_XD_BIT
 */
 bool LSM303DLHC::getAccelXDoubleClickEnabled(){
-  I2Cdev::readBit(devAddrA, LSM303DLHC_RA_CLICK_CFG_A, LSM303DLHC_CLICK_XD_BIT, buffer);
+  I2Cdev::readBit(devHandleA, LSM303DLHC_RA_CLICK_CFG_A, LSM303DLHC_CLICK_XD_BIT, buffer);
   return buffer[0];
 }
 
@@ -1737,7 +1740,7 @@ bool LSM303DLHC::getAccelXDoubleClickEnabled(){
 @see LSM303DLHC_CLICK_XS_BIT
 */
 void LSM303DLHC::setAccelXSingleClickEnabled(bool enabled){
-  I2Cdev::writeBit(devAddrA, LSM303DLHC_RA_CLICK_CFG_A, LSM303DLHC_CLICK_XS_BIT, enabled);
+  I2Cdev::writeBit(devHandleA, LSM303DLHC_RA_CLICK_CFG_A, LSM303DLHC_CLICK_XS_BIT, enabled);
 }
 
 /*Get status of interrupt single click on the X axis.
@@ -1747,7 +1750,7 @@ void LSM303DLHC::setAccelXSingleClickEnabled(bool enabled){
 */
 
 bool LSM303DLHC::getAccelXSingleClickEnabled(){
-  I2Cdev::readBit(devAddrA, LSM303DLHC_RA_CLICK_CFG_A, LSM303DLHC_CLICK_XS_BIT, buffer);
+  I2Cdev::readBit(devHandleA, LSM303DLHC_RA_CLICK_CFG_A, LSM303DLHC_CLICK_XS_BIT, buffer);
   return buffer[0];
 }
 
@@ -1767,7 +1770,7 @@ Reading this register may (not sure) clear any interrupts that were lateched.
 @see LSM303DLHC_CLICK_X_BIT     
 */
 uint8_t LSM303DLHC::getAccelClickSource(){
-  I2Cdev::readByte(devAddrA, LSM303DLHC_RA_CLICK_SRC_A, buffer);
+  I2Cdev::readByte(devHandleA, LSM303DLHC_RA_CLICK_SRC_A, buffer);
   return buffer[0];
 }
 
@@ -1779,7 +1782,7 @@ value is expressed over 7 bits as an unsigned number.
 @see LSM303DLHC_RA_CLICK_THS_A
 */
 void LSM303DLHC::setAcceLClickThreshold(uint8_t value){
-  I2Cdev::writeByte(devAddrA, LSM303DLHC_RA_CLICK_THS_A, value);
+  I2Cdev::writeByte(devHandleA, LSM303DLHC_RA_CLICK_THS_A, value);
 }
 
 /*Get the threshold which is used to start the click-detection procedure. The threshold 
@@ -1788,7 +1791,7 @@ value is a 7 bit unsigned number.
 @see LSM303DLHC_RA_CLICK_THS_A
 */
 uint8_t LSM303DLHC::getAccelClickThreshold(){
-  I2Cdev::readByte(devAddrA, LSM303DLHC_RA_CLICK_THS_A, buffer);
+  I2Cdev::readByte(devHandleA, LSM303DLHC_RA_CLICK_THS_A, buffer);
   return buffer[0];
 }
 
@@ -1801,7 +1804,7 @@ and when the acceleration falls below the threshold.
 @see LSM303DLHC_RA_TIME_LIMIT_A
 */
 void LSM303DLHC::setAcceLClickTimeLimit(uint8_t value){
-  I2Cdev::writeByte(devAddrA, LSM303DLHC_RA_TIME_LIMIT_A, value);
+  I2Cdev::writeByte(devHandleA, LSM303DLHC_RA_TIME_LIMIT_A, value);
 }
 
 /*Get the maximum time interval that can elapse between the start of the click-detection 
@@ -1811,7 +1814,7 @@ and when the acceleration falls below the threshold.
 @see LSM303DLHC_RA_TIME_LIMIT_A
 */
 uint8_t LSM303DLHC::getAccelClickTimeLimit(){
-  I2Cdev::readByte(devAddrA, LSM303DLHC_RA_TIME_LIMIT_A, buffer);
+  I2Cdev::readByte(devHandleA, LSM303DLHC_RA_TIME_LIMIT_A, buffer);
   return buffer[0];
 }
 
@@ -1824,7 +1827,7 @@ for double-click detection.
 @see LSM303DLHC_RA_TIME_LATENCY_A
 */
 void LSM303DLHC::setAcceLClickTimeLatency(uint8_t value){
-  I2Cdev::writeByte(devAddrA, LSM303DLHC_RA_TIME_LATENCY_A, value);
+  I2Cdev::writeByte(devHandleA, LSM303DLHC_RA_TIME_LATENCY_A, value);
 }
 
 /*Get the time interval that starts after the first click detection where the 
@@ -1834,7 +1837,7 @@ for double-click detection.
 @see LSM303DLHC_RA_TIME_LATENCY_A
 */
 uint8_t LSM303DLHC::getAccelClickTimeLatency(){
-  I2Cdev::readByte(devAddrA, LSM303DLHC_RA_TIME_LATENCY_A, buffer);
+  I2Cdev::readByte(devHandleA, LSM303DLHC_RA_TIME_LATENCY_A, buffer);
   return buffer[0];
 }
 
@@ -1847,7 +1850,7 @@ is configured for double-click detection.
 @see LSM303DLHC_RA_TIME_WINDOW_A
 */
 void LSM303DLHC::setAcceLClickTimeWindow(uint8_t value){
-  I2Cdev::writeByte(devAddrA, LSM303DLHC_RA_TIME_WINDOW_A, value);
+  I2Cdev::writeByte(devHandleA, LSM303DLHC_RA_TIME_WINDOW_A, value);
 }
 
 /*Get the maximum interval of time that can elapse after the end of the latency 
@@ -1857,7 +1860,7 @@ is configured for double-click detection.
 @see LSM303DLHC_RA_TIME_WINDOW_A
 */
 uint8_t LSM303DLHC::getAccelClickTimeWindow(){
-  I2Cdev::readByte(devAddrA, LSM303DLHC_RA_TIME_WINDOW_A, buffer);
+  I2Cdev::readByte(devHandleA, LSM303DLHC_RA_TIME_WINDOW_A, buffer);
   return buffer[0];
 }
 
@@ -1869,7 +1872,7 @@ uint8_t LSM303DLHC::getAccelClickTimeWindow(){
 @see LSM303DLHC_TEMP_EN_BIT
 */
 void LSM303DLHC::setMagTemperatureEnabled(bool enabled){
-  I2Cdev::writeBit(devAddrM, LSM303DLHC_RA_CRA_REG_M, LSM303DLHC_TEMP_EN_BIT, enabled);
+  I2Cdev::writeBit(devHandleM, LSM303DLHC_RA_CRA_REG_M, LSM303DLHC_TEMP_EN_BIT, enabled);
 }
 
 /*Get whether the temperature sensor is enabled.
@@ -1878,7 +1881,7 @@ void LSM303DLHC::setMagTemperatureEnabled(bool enabled){
 @see LSM303DLHC_TEMP_EN_BIT
 */
 bool LSM303DLHC::getMagTemperatureEnabled(){
-  I2Cdev::readBit(devAddrM, LSM303DLHC_RA_CRA_REG_M, LSM303DLHC_TEMP_EN_BIT, buffer);
+  I2Cdev::readBit(devHandleM, LSM303DLHC_RA_CRA_REG_M, LSM303DLHC_TEMP_EN_BIT, buffer);
   return buffer[0];
 }
 
@@ -1916,7 +1919,7 @@ void LSM303DLHC::setMagOutputDataRate(uint8_t rate){
     writeBit = LSM303DLHC_DO_RATE_220;
   }
 
-  I2Cdev::writeBits(devAddrM, LSM303DLHC_RA_CRA_REG_M, LSM303DLHC_DO_BIT, LSM303DLHC_DO_LENGTH, writeBit);
+  I2Cdev::writeBits(devHandleM, LSM303DLHC_RA_CRA_REG_M, LSM303DLHC_DO_BIT, LSM303DLHC_DO_LENGTH, writeBit);
 }
 
 /*Get the magetometer output data rate.
@@ -1934,7 +1937,7 @@ void LSM303DLHC::setMagOutputDataRate(uint8_t rate){
 @see LSM303DLHC_DO_RATE_220
 */
 uint8_t LSM303DLHC::getMagOutputDataRate(){
-  I2Cdev::readBits(devAddrM, LSM303DLHC_RA_CRA_REG_M, LSM303DLHC_DO_BIT,
+  I2Cdev::readBits(devHandleM, LSM303DLHC_RA_CRA_REG_M, LSM303DLHC_DO_BIT,
     LSM303DLHC_DO_LENGTH, buffer);
   uint8_t rate = buffer[0];
 
@@ -1991,7 +1994,7 @@ void LSM303DLHC::setMagGain(uint16_t gain){
     writeBit = LSM303DLHC_GN_1100;
   }
 
-  I2Cdev::writeBits(devAddrM, LSM303DLHC_RA_CRB_REG_M, LSM303DLHC_GN_BIT, LSM303DLHC_GN_LENGTH, writeBit);
+  I2Cdev::writeBits(devHandleM, LSM303DLHC_RA_CRB_REG_M, LSM303DLHC_GN_BIT, LSM303DLHC_GN_LENGTH, writeBit);
 }
 
 /*Get the magnetometer gain.
@@ -2006,7 +2009,7 @@ void LSM303DLHC::setMagGain(uint16_t gain){
 @see LSM303DLHC_GN_1100
 */
 uint16_t LSM303DLHC::getMagGain(){
-  I2Cdev::readBits(devAddrM, LSM303DLHC_RA_CRB_REG_M, LSM303DLHC_GN_BIT, LSM303DLHC_GN_LENGTH, buffer);
+  I2Cdev::readBits(devHandleM, LSM303DLHC_RA_CRB_REG_M, LSM303DLHC_GN_BIT, LSM303DLHC_GN_LENGTH, buffer);
   uint8_t gain = buffer[0];
   if (gain == LSM303DLHC_GN_230){
     return 230; 
@@ -2038,7 +2041,7 @@ uint16_t LSM303DLHC::getMagGain(){
 @see LSM303DLHC_MD_SLEEP
 */
 void LSM303DLHC::setMagMode(uint8_t mode){
-  I2Cdev::writeBits(devAddrM, LSM303DLHC_RA_MR_REG_M, LSM303DLHC_MD_BIT, LSM303DLHC_MD_LENGTH,
+  I2Cdev::writeBits(devHandleM, LSM303DLHC_RA_MR_REG_M, LSM303DLHC_MD_BIT, LSM303DLHC_MD_LENGTH,
     mode);
 }
 
@@ -2052,7 +2055,7 @@ void LSM303DLHC::setMagMode(uint8_t mode){
 @see LSM303DLHC_MD_SLEEP
 */
 uint8_t LSM303DLHC::getMagMode(){
-  I2Cdev::readBits(devAddrM, LSM303DLHC_RA_MR_REG_M, LSM303DLHC_MD_BIT, LSM303DLHC_MD_LENGTH,
+  I2Cdev::readBits(devHandleM, LSM303DLHC_RA_MR_REG_M, LSM303DLHC_MD_BIT, LSM303DLHC_MD_LENGTH,
     buffer);
   return buffer[0];
 }
@@ -2066,7 +2069,7 @@ uint8_t LSM303DLHC::getMagMode(){
  * @param z 16-bit integer container for the Z-axis magnetic field
  */
 void LSM303DLHC::getMag(int16_t* x, int16_t* y, int16_t* z){
-  I2Cdev::readBytes(devAddrM, LSM303DLHC_RA_OUT_X_H_M, 6, buffer);
+  I2Cdev::readBytes(devHandleM, LSM303DLHC_RA_OUT_X_H_M, 6, buffer);
   *x = ((((int16_t)buffer[0]) << 8) | buffer[1]);
   *z = ((((int16_t)buffer[2]) << 8) | buffer[3]);
   *y = ((((int16_t)buffer[4]) << 8) | buffer[5]);
@@ -2079,7 +2082,7 @@ void LSM303DLHC::getMag(int16_t* x, int16_t* y, int16_t* z){
  * @see LSM303DLHC_RA_OUT_X_H_M
  */
 int16_t LSM303DLHC::getMagX(){
-  I2Cdev::readBytes(devAddrM, LSM303DLHC_RA_OUT_X_H_M, 2, buffer);
+  I2Cdev::readBytes(devHandleM, LSM303DLHC_RA_OUT_X_H_M, 2, buffer);
   return (((int16_t)buffer[0]) << 8) | buffer[1];
 }
 
@@ -2089,7 +2092,7 @@ int16_t LSM303DLHC::getMagX(){
  * @see LSM303DLHC_RA_OUT_Y_H_M
  */
 int16_t LSM303DLHC::getMagY(){
-  I2Cdev::readBytes(devAddrM, LSM303DLHC_RA_OUT_Y_H_M, 2, buffer);
+  I2Cdev::readBytes(devHandleM, LSM303DLHC_RA_OUT_Y_H_M, 2, buffer);
   return (((int16_t)buffer[0]) << 8) | buffer[1];
 }
 
@@ -2099,7 +2102,7 @@ int16_t LSM303DLHC::getMagY(){
  * @see LSM303DLHC_RA_OUT_Z_H_M
  */
 int16_t LSM303DLHC::getMagZ(){
-  I2Cdev::readBytes(devAddrM, LSM303DLHC_RA_OUT_Z_H_M, 2, buffer);
+  I2Cdev::readBytes(devHandleM, LSM303DLHC_RA_OUT_Z_H_M, 2, buffer);
   return (((int16_t)buffer[0]) << 8) | buffer[1];
 }
         
@@ -2112,7 +2115,7 @@ data register has been read.
 @see LSM303DLHC_RA_M_LOCK_BIT
 */
 bool LSM303DLHC::getMagOutputDataRegisterLock(){
-  I2Cdev::readBit(devAddrM, LSM303DLHC_RA_SR_REG_M, LSM303DLHC_M_LOCK_BIT, buffer);
+  I2Cdev::readBit(devHandleM, LSM303DLHC_RA_SR_REG_M, LSM303DLHC_M_LOCK_BIT, buffer);
   return buffer[0];
 }
 
@@ -2122,7 +2125,7 @@ bool LSM303DLHC::getMagOutputDataRegisterLock(){
 @see LSM303DLHC_RA_M_DRDY_BIT
 */
 bool LSM303DLHC::getMagDataReady(){
-  I2Cdev::readBit(devAddrM, LSM303DLHC_RA_SR_REG_M, LSM303DLHC_M_DRDY_BIT, buffer);
+  I2Cdev::readBit(devHandleM, LSM303DLHC_RA_SR_REG_M, LSM303DLHC_M_DRDY_BIT, buffer);
   return buffer[0];
 }
 
@@ -2134,7 +2137,7 @@ bool LSM303DLHC::getMagDataReady(){
 @see LSM303DLHC_RA_TEMP_OUT_L_M
 */
 int16_t LSM303DLHC::getTemperature(){
-  I2Cdev::readBytes(devAddrM, LSM303DLHC_RA_TEMP_OUT_H_M | 0x80, 2, buffer);
+  I2Cdev::readBytes(devHandleM, LSM303DLHC_RA_TEMP_OUT_H_M | 0x80, 2, buffer);
   return ((((int16_t)buffer[0]) << 8) | buffer[1]) >> 4;
 }
 
@@ -2143,6 +2146,6 @@ int16_t LSM303DLHC::getTemperature(){
 uint8_t LSM303DLHC::getDeviceID() {
     return 0;
     // read a single byte and return it
-    // I2Cdev::readByte(devAddrA, LSM303DLHC_RA_WHO_AM_I, buffer);
+    // I2Cdev::readByte(devHandleA, LSM303DLHC_RA_WHO_AM_I, buffer);
     // return buffer[0];
 }
