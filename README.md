@@ -19,9 +19,8 @@ Then use the accelerometer and magnetometer to find the Euler angle.
 ![lsm303dlhc-euler](https://user-images.githubusercontent.com/6020549/232389292-acb291b7-b92d-44e7-83ab-ca3e8048960c.JPG)
 
 # Software requirements
-ESP-IDF V5.0 or later.   
-ESP-IDF V4.4 release branch reached EOL in July 2024.   
-ESP-IDF V5.1 is required when using ESP32-C6.   
+ESP-IDF V5.2 or later.   
+Because this project uses the new I2C driver.   
 
 # Hardware requirements
 LSM303DLHC 3D accelerometer and 3D magnetometer module.
